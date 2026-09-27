@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.*;
 
 @Entity
-@Table(name = "lead")
+@Table(name = "leasing_lead")
 public class Lead extends Row {
     @Column(nullable = false)
     public Long buildingId;

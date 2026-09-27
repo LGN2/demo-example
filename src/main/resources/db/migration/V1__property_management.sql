@@ -268,7 +268,7 @@ CREATE TABLE notice (
     body_en TEXT NOT NULL
 ) ENGINE=InnoDB;
 
-CREATE TABLE lead (
+CREATE TABLE leasing_lead (
     id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     version BIGINT NOT NULL DEFAULT 0,
     created_at DATETIME(6) NOT NULL,
@@ -424,9 +424,9 @@ ALTER TABLE meter_reading ADD CONSTRAINT fk_meter_reading_meter_id FOREIGN KEY (
 
 ALTER TABLE notice ADD CONSTRAINT fk_notice_building_id FOREIGN KEY (building_id) REFERENCES building(id);
 
-ALTER TABLE lead ADD CONSTRAINT fk_lead_building_id FOREIGN KEY (building_id) REFERENCES building(id);
+ALTER TABLE leasing_lead ADD CONSTRAINT fk_lead_building_id FOREIGN KEY (building_id) REFERENCES building(id);
 
-ALTER TABLE lead ADD CONSTRAINT fk_lead_unit_id FOREIGN KEY (unit_id) REFERENCES unit(id);
+ALTER TABLE leasing_lead ADD CONSTRAINT fk_lead_unit_id FOREIGN KEY (unit_id) REFERENCES unit(id);
 
 ALTER TABLE visit ADD CONSTRAINT fk_visit_building_id FOREIGN KEY (building_id) REFERENCES building(id);
 
