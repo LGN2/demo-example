@@ -7,7 +7,7 @@ Run on a disposable MySQL database. Automated tests are authoritative only when 
 - `MoneyRulesTest`: decimal precision, oldest-first partial allocation, overpayment rejection and historical reversal dates.
 - `AiAssistantTest`: missing credentials, Arabic valid JSON, malformed/extra fields, unknown category, provider failure and timeout. Mockito mocks the provider; no live model call is made.
 - `PropertyWorkflowIT`: real migrations/JPA/MySQL, OMR 300 → 200 after a 100 payment, unchanged pending/bounced cheque balances, exact-once replacement clearance, concurrent clearance, concurrent competing allocations, deposits excluded from rent, reversals and immutable dues, overlap/renewal/concurrent leases, owner/manager/tenant/admin isolation, CSRF denial, vendor/guard restrictions, files, utilities and preventive workflow.
-- `tests/browser/smoke.mjs`: real dev database/server and all owner module screens, an actual 10 OMR payment, a tenant urgent maintenance submission, six role journeys, English/Arabic layout direction and 360px overflow checks. Screenshots are saved as workflow artifacts.
+- `tests/browser/smoke.mjs`: real dev database/server and all owner module screens, an actual 10 OMR payment, a tenant urgent maintenance submission, owner, tenant, vendor, guard and platform-admin journeys (manager permissions are covered by MySQL tests), English/Arabic layout direction and 360px overflow checks. Screenshots are saved as workflow artifacts.
 
 ## Human review
 

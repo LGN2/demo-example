@@ -133,14 +133,19 @@ async function options(source) {
     if (source === "vendorUsers")
       data = data.filter((u) => u.role === "VENDOR");
   } else {
-    data = await api(
-      (source === "tax-policies"
-        ? "/tax-policies"
-        : source === "meters"
-          ? "/operations/meters"
-          : "/" + source) + query({ size: 100 }),
-    );
-    data = data.items || data;
+    const path = source === "tax-policies"
+      ? "/tax-policies"
+      : source === "meters" ? "/operations/meters" : "/" + source;
+    data = [];
+    for (let page = 0; ; page++) {
+      const result = await api(path + query({ size: 100, page }));
+      if (Array.isArray(result)) {
+        data = result;
+        break;
+      }
+      data.push(...result.items);
+      if (!result.items.length || data.length >= result.total) break;
+    }
   }
   lookups[source] = data;
   return data.map((r) => ({

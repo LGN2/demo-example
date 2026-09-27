@@ -126,6 +126,13 @@ try {
   );
   await page.setViewportSize({ width: 1440, height: 1000 });
   await logout();
+  await login("manager@demo.test");
+  await navigate("leases");
+  assert.equal((await page.request.get(base + "/api/leases/" + leaseId)).status(), 200);
+  await logout();
+  await login("unassigned@demo.test");
+  assert.equal((await page.request.get(base + "/api/leases/" + leaseId)).status(), 404);
+  await logout();
   await login("tenant@demo.test");
   await navigate("maintenance");
   await page.locator("[data-action=create]").click();

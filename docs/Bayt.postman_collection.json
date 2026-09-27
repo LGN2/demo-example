@@ -111,7 +111,7 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": "{{baseUrl}}/api/access",
+        "url": "{{baseUrl}}/api/access?buildingId=1",
         "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
       }
     },
@@ -1146,52 +1146,6 @@
       }
     },
     {
-      "name": "PUT /operations/visits/{{recordId}}",
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/operations/visits/{{recordId}}",
-        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"buildingId\": 1,\n  \"visitorName\": \"Training visitor\",\n  \"purpose\": \"Maintenance\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        }
-      }
-    },
-    {
-      "name": "PUT /operations/checkins/{{recordId}}",
-      "request": {
-        "method": "PUT",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "url": "{{baseUrl}}/api/operations/checkins/{{recordId}}",
-        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"buildingId\": 1,\n  \"note\": \"Training shift\"\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        }
-      }
-    },
-    {
       "name": "PUT /operations/parking/{{recordId}}",
       "request": {
         "method": "PUT",
@@ -1306,7 +1260,7 @@
       "request": {
         "method": "GET",
         "header": [],
-        "url": "{{baseUrl}}/api/assignees",
+        "url": "{{baseUrl}}/api/assignees?buildingId=1",
         "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
       }
     },
@@ -1669,6 +1623,30 @@
         "header": [],
         "url": "{{baseUrl}}/api/print/{{type}}/{{recordId}}",
         "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /auth/logout",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/api/auth/logout"
+      }
+    },
+    {
+      "name": "GET /integrations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/integrations"
+      }
+    },
+    {
+      "name": "GET /health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/health"
       }
     }
   ]

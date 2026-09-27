@@ -102,7 +102,7 @@ All monetary storage uses DECIMAL(15,3) / BigDecimal. Rates use DECIMAL(7,4); am
 - Tax policies are explicitly selected and must cover the full lease term. They are never inferred from residential/commercial labels. Exempt, zero-rated and out-of-scope treatments are distinct. Actual Omani tax treatment and legal contract wording require confirmation by the operator's advisers; no legal certification is claimed.
 - Reminders are live in-app records computed from stored dates. No email, WhatsApp, gateway or physical-device side effects are simulated.
 - Documents and lease drafts download as protected files / standalone printable HTML. The browser can print draft HTML to PDF. There is no electronic signature or municipal filing integration.
-- Search and pagination are applied after authorization within the service response. For large portfolios, move list filtering/pagination and aggregates into dedicated indexed database queries; this implementation prioritizes a clear training-team codebase. Selector lists currently load at most 100 accessible records.
+- Search and pagination are applied after authorization within the service response. For large portfolios, move list filtering/pagination and aggregates into dedicated indexed database queries; this implementation prioritizes a clear training-team codebase. Relationship selectors load all authorized pages; very large portfolios should use server-side autocomplete.
 - Dates are displayed in Asia/Muscat, UTC is used for stored timestamps, and amounts display three decimal places.
 
 ## Dependency references
