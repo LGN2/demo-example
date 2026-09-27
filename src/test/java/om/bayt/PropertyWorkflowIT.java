@@ -647,4 +647,11 @@ class PropertyWorkflowIT {
       pool.shutdownNow();
     }
   }
+  @Test
+  void tenantHistoryDoesNotExposeInternalFollowUpNotes() {
+    finance.followUp(lease.id, in("note", "Internal collection discussion"));
+    login(tenantUser);
+    assertTrue(properties.history("LEASE", lease.id).stream().noneMatch(e -> e.action.equals("FOLLOW_UP")));
+    assertThrows(ApiException.class, () -> finance.followUps(lease.id));
+  }
 }

@@ -194,6 +194,7 @@ const moneyKeys = [
   "hourlyRate",
 ];
 function column(key) {
+  if (key === "action" || key === "observation") return {key,render:r=>esc(t(r[key]))};
   if (key.endsWith("Id"))
     return { key, render: (r) => esc(refLabel(key, r[key])) };
   if (["urgent", "seasonalPriority", "occupied", "canWrite"].includes(key))

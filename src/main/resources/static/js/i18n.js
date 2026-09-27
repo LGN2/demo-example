@@ -555,6 +555,9 @@ const errors = {
   ],
 };
 Object.assign(copy, statuses, errors, {
+  INTERNAL_ERROR: ['تعذر إكمال العملية. حاول مجدداً أو تواصل مع المسؤول.', 'Unable to complete this action. Retry or contact your administrator.'],
+  CREATED: ['تم الإنشاء', 'Created'], UPDATED: ['تم التحديث', 'Updated'], OPENED: ['تم فتح الطلب', 'Request opened'], RENEWED: ['تم التجديد', 'Renewed'], PAYMENT_SETTLED: ['دفعة مسددة', 'Payment settled'], PAYMENT_REVERSED: ['تم عكس الدفعة', 'Payment reversed'], CHEQUE_SCHEDULED: ['شيك مجدول', 'Cheque scheduled'], CHEQUE_DEPOSITED: ['شيك مودع', 'Cheque deposited'], CHEQUE_CLEARED: ['شيك محصل', 'Cheque cleared'], CHEQUE_BOUNCED: ['شيك مرتجع', 'Cheque bounced'], CHEQUE_CANCELLED: ['شيك ملغى', 'Cheque cancelled'], DEPOSIT_RECEIPT: ['استلام تأمين', 'Deposit received'], DEPOSIT_REFUND: ['استرداد تأمين', 'Deposit refunded'], DEPOSIT_DEDUCTION: ['خصم من التأمين', 'Deposit deduction'], DEPOSIT_REVERSAL: ['عكس حركة التأمين', 'Deposit entry reversed'], FOLLOW_UP: ['متابعة داخلية', 'Internal follow-up'], COMMENT: ['تعليق', 'Comment'], MUNICIPALITY_UPDATED: ['تحديث التسجيل البلدي', 'Municipality updated'], SUMMARY_APPROVED: ['اعتماد الملخص', 'Summary approved'], AI_UNAVAILABLE: ['المساعد غير متاح', 'Assistant unavailable'], AI_ERROR: ['خطأ في خدمة المساعد', 'Assistant service error'], AI_TIMEOUT: ['انتهاء مهلة المساعد', 'Assistant timed out'], AI_PROPOSED: ['اقتراح من المساعد', 'Assistant suggestion'],
+
   yes: ["نعم", "Yes"],
   no: ["لا", "No"],
   occupancy: ["الإشغال حسب الوحدة", "Occupancy by unit"],
@@ -581,6 +584,7 @@ Object.assign(copy, statuses, errors, {
   ],
 });
 errors.BACKDATED_FINANCIAL_EVENT = copy.BACKDATED_FINANCIAL_EVENT;
+errors.INTERNAL_ERROR = copy.INTERNAL_ERROR;
 let language = sessionStorage.getItem("bayt-language") === "en" ? "en" : "ar";
 export const lang = () => language;
 export function setLanguage(value) {

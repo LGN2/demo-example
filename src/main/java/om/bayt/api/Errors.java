@@ -38,6 +38,13 @@ public class Errors {
     return error(413, "FILE_TOO_LARGE");
   }
 
+  @ExceptionHandler(Exception.class)
+  ResponseEntity<?> unexpected(Exception e) {
+    org.slf4j.LoggerFactory.getLogger(Errors.class)
+        .error("Unhandled API failure: {}", e.getClass().getSimpleName());
+    return error(500, "INTERNAL_ERROR");
+  }
+
   private ResponseEntity<?> error(int status, String code) {
     return ResponseEntity.status(status).body(Map.of("code", code));
   }

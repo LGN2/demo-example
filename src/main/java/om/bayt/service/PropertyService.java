@@ -344,13 +344,12 @@ public class PropertyService {
           default -> throw ApiException.invalid("INVALID_INPUT");
         };
     if (type.equals("BUILDING")) access.staffRead(bid);
-    return db.list(
+    var events = db.list(
         AuditEvent.class,
-        "select a from AuditEvent a where a.resourceType=:type and a.resourceId=:id order by"
-            + " a.createdAt",
-        "type",
-        type,
-        "id",
-        id);
+        "select a from AuditEvent a where a.resourceType=:type and a.resourceId=:id order by a.createdAt",
+        "type", type, "id", id);
+    if (access.user().role.equals("TENANT"))
+      return events.stream().filter(event -> !event.action.equals("FOLLOW_UP")).toList();
+    return events;
   }
 }
