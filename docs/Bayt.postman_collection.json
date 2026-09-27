@@ -497,15 +497,6 @@
       }
     },
     {
-      "name": "GET /api/health",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": "{{baseUrl}}/api/api/health",
-        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
-      }
-    },
-    {
       "name": "GET /maintenance",
       "request": {
         "method": "GET",
@@ -1586,15 +1577,6 @@
         "method": "GET",
         "header": [],
         "url": "{{baseUrl}}/api/history/{{type}}/{{recordId}}",
-        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
-      }
-    },
-    {
-      "name": "GET /api/reminders",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": "{{baseUrl}}/api/api/reminders",
         "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
       }
     },

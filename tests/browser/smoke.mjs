@@ -44,6 +44,7 @@ try {
   await page.screenshot({
     path: "artifacts/dashboard-ar-desktop.png",
     fullPage: true,
+    animations: "disabled",
   });
   for (const route of [
     "buildings",
@@ -93,17 +94,20 @@ try {
     assert.equal(await page.locator("#main .error").count(), 0, tab);
   }
   await navigate("dashboard");
+  await page.locator("#toast").waitFor({ state: "hidden" });
   await page.locator("[data-action=language]").click();
   await page.locator("html[dir=ltr]").waitFor();
   await page.locator(".metric").first().waitFor();
   await page.screenshot({
     path: "artifacts/dashboard-en-desktop.png",
     fullPage: true,
+    animations: "disabled",
   });
   await page.setViewportSize({ width: 360, height: 800 });
   await page.screenshot({
     path: "artifacts/dashboard-en-mobile.png",
     fullPage: true,
+    animations: "disabled",
   });
   assert.ok(
     await page.evaluate(
@@ -117,6 +121,7 @@ try {
   await page.screenshot({
     path: "artifacts/dashboard-ar-mobile.png",
     fullPage: true,
+    animations: "disabled",
   });
   assert.ok(
     await page.evaluate(

@@ -1149,7 +1149,8 @@ dialog::backdrop {
     padding: 20px;
   }
   .footer-note {
-    display: block;
+    flex-direction: column;
+    gap: 8px;
   }
   .login-form {
     padding: 28px;
