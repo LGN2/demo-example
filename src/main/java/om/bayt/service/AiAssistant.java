@@ -32,6 +32,7 @@ public class AiAssistant implements AutoCloseable {
   private final ObjectMapper json =
       new ObjectMapper().enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
+  @org.springframework.beans.factory.annotation.Autowired
   public AiAssistant(
       @Value("${app.ai.key:}") String key,
       @Value("${app.ai.model}") String model,
