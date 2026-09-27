@@ -1,0 +1,369 @@
+Act as a senior full-stack software engineer, software architect, database designer, UI/UX designer and QA engineer.
+
+Build the **Building and Property Management Web Application for Oman** described in the attached proposal.
+
+I want a working application with complete source code, connected frontend and backend, persistent database storage, tests and setup documentation. Do not stop after producing a plan, architecture, database schema or visual prototype.
+
+## 1. Read the specification and establish scope
+
+Read the complete proposal before coding. Treat it as the primary functional specification.
+
+Create a requirements checklist mapping every feature to:
+- Its implementation phase.
+- Backend services and endpoints.
+- Frontend screens.
+- Database entities.
+- Acceptance tests.
+- Actual completion status.
+
+Build the application in this order:
+1. Complete and test the one-week MVP.
+2. Implement the remaining standalone property-management features.
+3. Implement external integrations where real documentation, credentials and infrastructure are available.
+
+The one-week deadline applies to the MVP, not the entire product. Do not silently omit later-phase features or claim that provider-dependent integrations are complete when they are not.
+
+Make reasonable implementation decisions and record assumptions. Ask questions only when missing information creates a genuine blocker. Continue all independent work while a dependency is blocked.
+
+If an existing repository is available, inspect its structure and instructions first, preserve valid work and extend it. Otherwise, create a clean project.
+
+## 2. Required technology stack
+
+Use:
+- Frontend: HTML5, CSS3 and vanilla JavaScript with ES modules.
+- Backend: Java and Spring Boot REST APIs.
+- Database: MySQL.
+- Persistence: Spring Data JPA/Hibernate.
+- Authentication and authorization: Spring Security.
+- AI integration: Spring AI.
+- Build system: Maven with Maven Wrapper.
+- Schema migrations: Flyway.
+- Testing: JUnit, Mockito and database integration tests where appropriate.
+- Source control: Git.
+- Planning: ClickUp-compatible tasks and subtasks.
+
+Do not substitute React, Angular, Firebase, Node.js or an in-memory database for the required stack.
+
+Select compatible, supported dependency versions using official documentation. Pin versions and document the required JDK. Configure the compiler correctly so the project does not default to an obsolete Java target.
+
+Prefer a modular monolith with the frontend served from the same origin as Spring Boot. Avoid unnecessary microservices.
+
+Provide Docker Compose for MySQL and the application, plus instructions for running without Docker.
+
+## 3. Application design and usability
+
+Create a professional, polished property-management interface.
+
+Requirements:
+- Arabic is the default language with correct RTL layout.
+- Provide an English option with LTR layout.
+- Translate navigation, forms, statuses, validation messages and empty states.
+- Format OMR amounts with three decimal places.
+- Use clear dates and Asia/Muscat for local display.
+- Support mobile screens starting at 360 px and desktop layouts.
+- Provide accessible labels, keyboard navigation, visible focus and readable contrast.
+- Include loading, empty, success, error and confirmation states.
+- Provide pagination, search and appropriate filters for growing lists.
+- Use consistent reusable frontend components and API utilities.
+
+Every implemented screen must use real backend data. Do not use hard-coded dashboard statistics, fake success messages or browser localStorage as the primary database.
+
+## 4. Roles and ownership isolation
+
+Implement:
+- Owner.
+- Property Manager.
+- Tenant.
+- Maintenance Vendor/Technician.
+- Haris/Guard.
+- Platform Admin.
+
+Deliver Owner, Manager and Tenant journeys first, then the later-role workflows.
+
+An owner controls only their portfolio. Managers operate only within assigned buildings and granted permissions. Tenants access only their own tenancy, financial records, notices and requests. Vendors access assigned jobs. Guards have restricted operational access.
+
+Platform administration must remain separate from property ownership. Do not give Platform Admin unrestricted access to tenant documents and finances by default.
+
+Enforce authorization on the server for every read, write, export and download. Never rely on hidden frontend buttons or a client-supplied owner ID.
+
+Include negative tests for cross-owner access, unassigned managers and tenants attempting to access another tenant’s records.
+
+## 5. Property and tenancy features
+
+Implement:
+- Buildings, floors, flats and shops.
+- Location and wilayat, unit size and residential/commercial classification.
+- Occupancy and maintenance availability as distinct concepts.
+- Tenant and company profiles, contact information and emergency contacts.
+- Protected civil ID, passport and company CR documents.
+- Lease creation, details, renewal, termination and history.
+- Start/end dates, rent and security deposits.
+- Prevention of overlapping active leases for the same unit.
+- Configurable 60/90-day lease-expiry indicators and reminders.
+- Municipality registration status, authority, reference and fee records.
+- Downloadable Arabic and English draft lease documents populated from stored data.
+
+Clearly mark generated legal contracts as drafts requiring appropriate review. Do not claim that generating a document completes legal signing or municipality registration.
+
+For the initial MVP, support one unit and one tenant/company per lease with fixed monthly rent. Implement more complex behavior only with explicit rules and tests.
+
+## 6. Rent, cheques and financial correctness
+
+Implement:
+- Rent schedules and individual dues.
+- Manual bank transfer and other payment records.
+- Partial payments.
+- Payment allocations.
+- Post-dated cheque records.
+- Arrears, aging and follow-up history.
+- Invoices, receipts and tenant statements.
+- Security-deposit receipts, deductions and refunds.
+- Configurable tax policies.
+- Recorded property expenses and financial exports.
+
+Cheques must include number, bank, date, amount, related lease and status:
+- Scheduled.
+- Deposited.
+- Cleared.
+- Bounced.
+- Cancelled.
+
+Mandatory rules:
+1. A recorded or deposited cheque is not collected rent.
+2. Pending, bounced and cancelled cheques do not reduce outstanding rent.
+3. Clearance creates exactly one linked settled payment.
+4. Retrying clearance must not create another payment.
+5. A cheque and its resulting payment must never be counted twice.
+6. Allocate partial payments to the oldest unpaid dues on the same lease.
+7. Reject overpayments in the MVP; do not silently discard excess amounts.
+8. Keep deposits separate from rent and rental income.
+9. Use BigDecimal and appropriate MySQL decimal columns.
+10. Perform financial mutations transactionally and protect against concurrent over-allocation.
+11. Preserve historical amounts and audit trails.
+12. Correct settled transactions through documented reversals rather than deletion.
+13. Apply idempotency to payment recording and external callbacks where relevant.
+
+Distinguish:
+- Expected rent within a reporting period.
+- Settled collections within that period.
+- Outstanding and overdue balances as of a selected date.
+- Future unpaid dues, which are not yet overdue.
+
+Do not hard-code VAT solely from a residential/commercial label. Support owner tax status, supply classification, effective dates and explicit tax treatment. Keep exempt and zero-rated treatments distinct. Verify legal claims against current official Omani sources; otherwise mark them for confirmation.
+
+## 7. Maintenance management
+
+Implement:
+- Tenant submissions with descriptions and protected photos.
+- Categories including AC, plumbing, electrical, lift and other.
+- Workflow: open → assigned → in progress → resolved → closed.
+- Assignment, timestamps, comments and status history.
+- Urgent reporting without dependence on AI.
+- Vendor directory, service categories, rates and performance history.
+- Preventive tasks and recurring schedules.
+- AC inspections, filter cleaning and servicing.
+- Water-tank, pest-control, lift and generator schedules.
+- Configurable seasonal priorities, including an optional May–September period.
+- Expenses linked to buildings and units.
+- Cost-per-unit reporting.
+
+During the MVP, assignment can be to an internal manager. Expand to vendor accounts afterward.
+
+## 8. Spring AI maintenance assistant
+
+Implement a real server-side Spring AI integration.
+
+Input:
+- Tenant maintenance description in Arabic or English.
+- Selected language.
+- Only the minimum necessary issue information.
+
+Output:
+- A concise structured summary.
+- A suggested category from the approved category list.
+
+The manager must accept or edit suggestions. Preserve the original description and distinguish proposed values from approved values.
+
+Requirements:
+- Save the maintenance request before requesting AI assistance.
+- Apply input limits, timeout handling and output-schema validation.
+- Treat user text as untrusted input.
+- Keep credentials on the server.
+- Exclude identity documents and unrelated financial information.
+- Do not provide the model with database tools or financial actions.
+- Do not invent repair costs or definitive diagnoses.
+- Do not let AI determine urgency, rent, tax, payment approval or compliance.
+- Provide a working manual fallback when credentials are absent or the provider fails.
+- Clearly label unavailable AI functionality; never return fabricated results as a live AI response.
+
+Include Arabic and English examples and tests for malformed responses, timeouts and service errors.
+
+## 9. Remaining property-management modules
+
+Implement the following after the MVP:
+
+**Documents and safety**
+- Protected document vault.
+- Title deeds, permits, completion certificates and insurance.
+- Fire-extinguisher expiry, fire-alarm testing and Civil Defence certificate records.
+- Lift inspection certificates and service contracts.
+- Expiry reminders.
+- Recordkeeping labels that do not imply guaranteed compliance.
+
+**Utilities**
+- Electricity/water accounts and meters.
+- Owner/tenant payment responsibility.
+- Manual readings and consumption history.
+- Common-area usage.
+- Move-in/out readings with photos.
+- Configurable unusual-consumption alerts presented as observations, not confirmed diagnoses.
+
+**Communication**
+- Arabic/English announcements and notices.
+- Tenant statements, receipts, lease information and maintenance status.
+- In-app reminders.
+- Optional manual WhatsApp sharing clearly distinguished from automation.
+
+**Vacancy and leasing**
+- Vacant units and vacancy duration.
+- Estimated foregone rent with visible assumptions.
+- Listing details and photos.
+- Prospect enquiries, viewings and follow-ups.
+
+**Operational access**
+- Visitor records.
+- Guard check-ins.
+- Parking allocation.
+- Restricted vendor and guard screens.
+
+## 10. Dashboards and reports
+
+Implement owner and manager dashboards with:
+- Occupancy.
+- Expected rent.
+- Settled collections.
+- Overdue balances.
+- Pending and bounced cheques.
+- Upcoming lease expiries.
+- Vacant units.
+- Open maintenance.
+- Income and recorded expenses.
+- Building/unit filters and multi-building views.
+- CSV exports and appropriate downloadable reports.
+
+Every metric must have a documented calculation and drill-down to supporting records.
+
+Separate net operating income from net yield. Calculate yield only when an explicit property-value or investment-cost basis is available. Never invent missing values.
+
+## 11. External integrations
+
+Cover:
+- A suitable local payment gateway.
+- Automated WhatsApp notifications and request intake.
+- Property portals where supported.
+- Smart locks and intercoms.
+- CCTV equipment status.
+- Central AC/chillers.
+- Lift status.
+- Tank levels and pump alerts.
+- Energy monitoring.
+
+Do not invent provider APIs or credentials.
+
+Where a provider is selected and documentation is available, implement its adapter, configuration and relevant tests. For payment integrations, verify callback authenticity, amount, currency, owner context and idempotency before recording settlement.
+
+Where provider selection, credentials or hardware are missing:
+- Finish the independent application functionality.
+- Isolate the dependency behind a clear interface.
+- Disable the unavailable integration visibly.
+- Document exactly what is needed to activate it.
+- Keep any test simulator restricted to an explicitly labeled development/test profile.
+- Report the feature as blocked or incomplete, not implemented.
+
+Do not send real messages, charge accounts or operate physical devices during testing.
+
+## 12. Security and data integrity
+
+Implement:
+- Secure password hashing.
+- Session-based authentication with appropriate cookie settings.
+- CSRF protection for browser writes.
+- Server-side validation.
+- Centralized exception handling and consistent API errors.
+- Ownership-aware queries and service checks.
+- Audit history for important changes.
+- Environment-based secrets.
+- Protected file storage outside public static directories.
+- File size/type restrictions and authorized downloads.
+- A documented upload-scanning strategy.
+- Safe database migrations and foreign-key constraints.
+- Backup and restore instructions.
+
+Do not disable security features simply to make the frontend work. Do not expose real personal information in seed data or logs.
+
+## 13. Testing and acceptance
+
+Write meaningful tests for financial rules, permissions and critical workflows. Use MySQL integration tests where database-specific behavior matters.
+
+At minimum, prove:
+- A due of OMR 300.000 becomes 200.000 after a settled payment of 100.000.
+- A pending or bounced cheque of 200.000 leaves the outstanding balance unchanged.
+- Clearing a replacement cheque settles the remaining 200.000 exactly once.
+- A deposit of 300.000 does not increase rental collections.
+- Concurrent or repeated clearance cannot double-count money.
+- Invalid lease overlaps are rejected.
+- Unauthorized accounts cannot read or modify protected records.
+- Maintenance can progress through the complete permitted workflow.
+- AI failure does not lose or block a request.
+- Dashboard values reconcile to stored transactions.
+- Arabic/English layouts work on mobile and desktop.
+
+Run the application and tests where tools permit. Report actual commands and results. Never claim tests passed if they were not executed.
+
+## 14. Repository, commits and documentation
+
+Keep the code organized and understandable for a software-development training team.
+
+Use feature branches and meaningful, granular Conventional Commits when Git is available. Commit coherent changes such as migrations, services, endpoints, screens and tests separately where sensible. Do not create empty commits or artificial changes just to increase the count.
+
+Do not claim to push commits or create reviewed pull requests unless those actions actually occurred.
+
+Provide:
+- Complete source code.
+- Maven Wrapper and dependency configuration.
+- Flyway migrations.
+- Development-only synthetic seed data for at least two owners and restricted users.
+- Environment-variable example without secrets.
+- Docker Compose.
+- README with Windows PowerShell and Linux/macOS commands.
+- Non-Docker MySQL setup instructions.
+- API documentation and a Postman collection.
+- Database relationship diagram.
+- Automated tests and manual acceptance checklist.
+- Eight-minute demo script.
+- ClickUp-compatible backlog with tasks, subtasks, dependencies and acceptance criteria.
+- Requirements completion matrix and remaining integration blockers.
+
+Keep demo accounts and reset scripts development-only.
+
+## 15. Execution and final delivery
+
+Start by inspecting the attached proposal and available workspace, then give a brief implementation sequence and begin creating the application immediately.
+
+Work in connected vertical slices: database → backend → frontend → tests. Finish the MVP before expanding the remaining modules.
+
+Do not provide pseudocode, empty services, disconnected screens, “implement this later” placeholders in core functionality or instructions asking me to write missing application code myself.
+
+If you have filesystem and terminal tools, create and test the project directly. If you only have chat output, provide complete files with exact paths in manageable batches and clearly explain that you cannot execute them.
+
+If context or response limits interrupt the work, maintain a progress file containing completed features, remaining tasks, test results and exact next steps. Do not describe an unfinished project as complete.
+
+At delivery, state:
+1. What is fully implemented.
+2. What was actually tested.
+3. How to start the application.
+4. How to access development demo accounts.
+5. Which external dependencies remain.
+6. Any known defects or limitations.
+
+Begin now and carry the implementation through to a working, reviewable application.
