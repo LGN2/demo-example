@@ -23,9 +23,10 @@ public class FinanceService {
         return db.list(Allocation.class,"select a from Allocation a,Payment p where a.paymentId=p.id and a.dueId=:id and p.effectiveDate<=:day and (p.reversedOn is null or p.reversedOn>:day)","id",due.id,"day",asOf).stream().map(a->a.amount).reduce(BigDecimal.ZERO,BigDecimal::add);
     }
     public DueView view(Due d,LocalDate asOf) {
-        BigDecimal paid=paid(d,asOf), outstanding=d.cancelled?BigDecimal.ZERO:d.amount.subtract(paid);
+        boolean cancelled=d.cancelled&&(d.cancelledOn==null||!d.cancelledOn.isAfter(asOf));
+        BigDecimal paid=paid(d,asOf), outstanding=cancelled?BigDecimal.ZERO:d.amount.subtract(paid);
         long days=outstanding.signum()>0&&d.dueDate.isBefore(asOf)?java.time.temporal.ChronoUnit.DAYS.between(d.dueDate,asOf):0;
-        return new DueView(d.id,d.leaseId,d.dueDate,d.rentAmount,d.taxAmount,d.amount,paid,outstanding,d.cancelled,days);
+        return new DueView(d.id,d.leaseId,d.dueDate,d.rentAmount,d.taxAmount,d.amount,paid,outstanding,cancelled,days);
     }
     public List<Payment> payments(Long leaseId){access.lease(leaseId,false);return db.list(Payment.class,"select p from Payment p where p.leaseId=:id order by p.effectiveDate desc,p.id desc","id",leaseId);}
     public Payment payment(Long leaseId,Input in) {
@@ -36,6 +37,10 @@ public class FinanceService {
         if(date.isAfter(LocalDate.now(clock)))throw ApiException.invalid("FUTURE_SETTLEMENT");
         var previous=db.list(Payment.class,"select p from Payment p where p.leaseId=:id and p.idempotencyKey=:key","id",l.id,"key",key);
         if(!previous.isEmpty()){Payment p=previous.get(0);if(p.amount.compareTo(amount)!=0||!p.method.equals(method)||!p.reference.equals(reference)||!p.effectiveDate.equals(date))throw ApiException.conflict("IDEMPOTENCY_CONFLICT");return p;}
+        for(Payment event:payments(l.id)) {
+            LocalDate latest=event.reversedOn==null?event.effectiveDate:event.reversedOn;
+            if(date.isBefore(latest))throw ApiException.invalid("BACKDATED_FINANCIAL_EVENT");
+        }
         var balances=dueRows(l.id).stream().filter(d->!d.cancelled).map(d->new MoneyRules.Balance(d.id,d.amount.subtract(paid(d,LocalDate.now(clock))))).toList();
         List<MoneyRules.Part> parts;
         try{parts=MoneyRules.allocate(amount,balances);}catch(IllegalArgumentException e){throw ApiException.invalid(e.getMessage());}
@@ -74,6 +79,7 @@ public class FinanceService {
         if(date.isAfter(LocalDate.now(clock)))throw ApiException.invalid("FUTURE_SETTLEMENT");
         var entries=deposits(leaseId);
         for(var e:entries)if(e.idempotencyKey.equals(key)){if(!e.kind.equals(kind)||e.amount.compareTo(amount)!=0||!e.effectiveDate.equals(date)||!e.reason.equals(reason)||!Objects.equals(e.reversesId,originalId))throw ApiException.conflict("IDEMPOTENCY_CONFLICT");return e;}
+        if(entries.stream().anyMatch(entry->date.isBefore(entry.effectiveDate)))throw ApiException.invalid("BACKDATED_FINANCIAL_EVENT");
         DepositEntry e=new DepositEntry();e.leaseId=leaseId;e.kind=kind;e.amount=amount;e.effectiveDate=date;e.reason=reason;e.idempotencyKey=key;
         if(kind.equals("REVERSAL")){
             DepositEntry original=db.get(DepositEntry.class,originalId);

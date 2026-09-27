@@ -24,7 +24,7 @@ public class OperationsService {
     }
     public Row get(String type,Long id){return list(type,null).stream().filter(r->r.id.equals(id)).findFirst().orElseThrow(ApiException::missing);}
     private Class<? extends Row> type(String type){var t=TYPES.get(type);if(t==null)throw ApiException.missing();return t;}
-    private void readRole(String type){if(type.equals("notices"))access.role("OWNER","MANAGER","TENANT");else if(type.equals("meters")||type.equals("parking"))access.role("OWNER","MANAGER","TENANT","GUARD");else if(type.equals("visits")||type.equals("checkins"))access.role("OWNER","MANAGER","GUARD");else access.role("OWNER","MANAGER");}
+    private void readRole(String type){if(type.equals("notices"))access.role("OWNER","MANAGER","TENANT");else if(type.equals("meters"))access.role("OWNER","MANAGER","TENANT");else if(type.equals("parking"))access.role("OWNER","MANAGER","TENANT","GUARD");else if(type.equals("visits")||type.equals("checkins"))access.role("OWNER","MANAGER","GUARD");else access.role("OWNER","MANAGER");}
     public Row save(String type,Long id,Input in){
         type(type);Long b=in.id("buildingId");
         if(access.user().role.equals("GUARD")&&Set.of("visits","checkins").contains(type)){access.building(b);if(id!=null)throw ApiException.forbidden();}else access.manage(b);

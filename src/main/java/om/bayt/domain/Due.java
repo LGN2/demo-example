@@ -20,4 +20,5 @@ public class Due extends Row {
     public BigDecimal amount = BigDecimal.ZERO;
     @Column(nullable = false)
     public boolean cancelled;
+    public LocalDate cancelledOn;
 }

@@ -94,7 +94,7 @@ public class PropertyService {
         Lease initial=access.lease(id,true);db.lock(Unit.class,initial.unitId);Lease l=db.lock(Lease.class,id);
         LocalDate when=in.date("terminatedOn");if(!l.status.equals("ACTIVE")||when.isBefore(l.startDate)||when.isAfter(l.endDate)||when.isAfter(LocalDate.now(clock)))throw ApiException.invalid("INVALID_DATE");
         var future=db.list(Due.class,"select d from Due d where d.leaseId=:l and d.dueDate>:date","l",id,"date",when);
-        for(var due:future){var paid=db.list(Allocation.class,"select a from Allocation a, Payment p where a.paymentId=p.id and a.dueId=:d and p.reversedOn is null","d",due.id);if(!paid.isEmpty())throw ApiException.conflict("REVERSE_FUTURE_PAYMENTS_FIRST");due.cancelled=true;}
+        for(var due:future){var paid=db.list(Allocation.class,"select a from Allocation a, Payment p where a.paymentId=p.id and a.dueId=:d and p.reversedOn is null","d",due.id);if(!paid.isEmpty())throw ApiException.conflict("REVERSE_FUTURE_PAYMENTS_FIRST");due.cancelled=true;due.cancelledOn=when;}
         l.status="TERMINATED";l.terminatedOn=when;db.get(Unit.class,l.unitId).vacancySince=when.plusDays(1);
         audit.add(l.buildingId,"LEASE",id,"TERMINATED",in.text("reason",255));return l;
     }

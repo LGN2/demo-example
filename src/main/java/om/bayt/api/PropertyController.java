@@ -9,11 +9,18 @@ import java.util.*;
 public class PropertyController {
     private final PropertyService s;private final Access access;
     public PropertyController(PropertyService s,Access access){this.s=s;this.access=access;}
-    @GetMapping("/buildings") Object buildings(){return s.buildings();}
+    @GetMapping("/buildings") Object buildings(){
+        var all=s.buildings();
+        if(Set.of("OWNER","MANAGER").contains(access.user().role))return all;
+        return all.stream().map(b->Map.of("id",b.id,"name",b.name,"wilayat",b.wilayat,"address",b.address)).toList();
+    }
     @PostMapping("/buildings") Object building(@RequestBody Map<String,Object> b){return s.building(new Input(b),null);}
     @PutMapping("/buildings/{id}") Object building(@PathVariable Long id,@RequestBody Map<String,Object> b){return s.building(new Input(b),id);}
-    @GetMapping("/units") Object units(@RequestParam(required=false) Long buildingId,@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size,@RequestParam(defaultValue="") String q){return PageSlice.of(s.units(buildingId),page,size,q,u->u.code+" "+u.floorName+" "+u.kind+" "+u.availability);}
-    @GetMapping("/units/{id}") Object unit(@PathVariable Long id){return access.unit(id);}
+    @GetMapping("/units") Object units(@RequestParam(required=false) Long buildingId,@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size,@RequestParam(defaultValue="") String q){var result=PageSlice.of(s.units(buildingId),page,size,q,u->u.code+" "+u.floorName+" "+u.kind+" "+u.availability);
+        if(Set.of("GUARD","VENDOR").contains(access.user().role))return new PageSlice<>(result.items().stream().map(this::operationalUnit).toList(),result.total(),result.page(),result.size());
+        return result;}
+    @GetMapping("/units/{id}") Object unit(@PathVariable Long id){var u=access.unit(id);return Set.of("GUARD","VENDOR").contains(access.user().role)?operationalUnit(u):u;}
+    private Map<String,Object> operationalUnit(om.bayt.domain.Unit u){return Map.of("id",u.id,"buildingId",u.buildingId,"code",u.code,"floorName",u.floorName,"kind",u.kind,"availability",u.availability);}
     @PostMapping("/units") Object unit(@RequestBody Map<String,Object> b){return s.unit(new Input(b),null);}
     @PutMapping("/units/{id}") Object unit(@PathVariable Long id,@RequestBody Map<String,Object> b){return s.unit(new Input(b),id);}
     @GetMapping("/tenants") Object tenants(@RequestParam(required=false) Long buildingId,@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size,@RequestParam(defaultValue="") String q){return PageSlice.of(s.tenants(buildingId),page,size,q,t->t.name+" "+t.phone+" "+t.kind);}

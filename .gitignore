@@ -8,3 +8,4 @@ storage/
 artifacts/
 node_modules/
 .DS_Store
+.work/

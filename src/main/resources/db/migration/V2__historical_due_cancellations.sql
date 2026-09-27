@@ -1,0 +1,1 @@
+ALTER TABLE due ADD COLUMN cancelled_on DATE NULL;
