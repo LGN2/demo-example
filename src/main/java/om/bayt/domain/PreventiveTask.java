@@ -8,6 +8,7 @@ import java.time.*;
 @Entity
 @Table(name = "preventive_task")
 public class PreventiveTask extends Row {
+    @Transient public boolean seasonalPriority;
     @Column(nullable = false)
     public Long buildingId;
     @Column(nullable = true)

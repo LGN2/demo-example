@@ -20,7 +20,9 @@ public class OperationsService {
             var unitIds=properties.units(building).stream().map(u->u.id).toList();if(unitIds.isEmpty())return List.of();
             return db.list(entity,"select e from "+entity.getSimpleName()+" e where e.buildingId in :ids and e.unitId in :units order by e.id desc","ids",ids,"units",unitIds);
         }
-        return db.list(entity,"select e from "+entity.getSimpleName()+" e where e.buildingId in :ids order by e.id desc","ids",ids);
+        var rows=db.list(entity,"select e from "+entity.getSimpleName()+" e where e.buildingId in :ids order by e.id desc","ids",ids);
+        if(type.equals("preventive"))for(Row row:rows){PreventiveTask p=(PreventiveTask)row;Building b=db.get(Building.class,p.buildingId);p.seasonalPriority=p.category.equals("AC")&&MaintenanceService.inSeason(LocalDate.now(clock).getMonthValue(),b.seasonalStart,b.seasonalEnd);}
+        return rows;
     }
     public Row get(String type,Long id){return list(type,null).stream().filter(r->r.id.equals(id)).findFirst().orElseThrow(ApiException::missing);}
     private Class<? extends Row> type(String type){var t=TYPES.get(type);if(t==null)throw ApiException.missing();return t;}

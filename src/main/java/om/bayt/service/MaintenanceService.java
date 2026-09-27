@@ -14,6 +14,13 @@ public class MaintenanceService {
     private final Store db;private final Access access;private final Audit audit;private final Clock clock;private final PropertyService properties;
     public MaintenanceService(Store db,Access access,Audit audit,Clock clock,PropertyService properties){this.db=db;this.access=access;this.audit=audit;this.clock=clock;this.properties=properties;}
     public List<Maintenance> list(Long building) {
+        var rows=listScoped(building);
+        int month=LocalDate.now(clock).getMonthValue();
+        for(var m:rows){Building b=db.get(Building.class,m.buildingId);m.seasonalPriority=m.category.equals("AC")&&inSeason(month,b.seasonalStart,b.seasonalEnd);}
+        return rows;
+    }
+    public static boolean inSeason(int month,int start,int end){return start>0&&end>0&&(start<=end?month>=start&&month<=end:month>=start||month<=end);}
+    private List<Maintenance> listScoped(Long building) {
         access.role("OWNER","MANAGER","TENANT","VENDOR");var ids=properties.scope(building);if(ids.isEmpty())return List.of();
         if(access.user().role.equals("TENANT"))return db.list(Maintenance.class,"select m from Maintenance m,Tenant t where m.tenantId=t.id and t.accountId=:u and m.buildingId in :ids order by m.id desc","u",access.user().id,"ids",ids);
         if(access.user().role.equals("VENDOR"))return db.list(Maintenance.class,"select m from Maintenance m where m.assignedTo=:u and m.buildingId in :ids order by m.id desc","u",access.user().id,"ids",ids);
