@@ -9,7 +9,11 @@ services:
     ports: ["127.0.0.1:3306:3306"]
     volumes: ["mysql-data:/var/lib/mysql"]
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD",
+        ]
       interval: 5s
       timeout: 5s
       retries: 30
@@ -17,7 +21,7 @@ services:
     build: .
     ports: ["127.0.0.1:8080:8080"]
     depends_on:
-      mysql: {condition: service_healthy}
+      mysql: { condition: service_healthy }
     environment:
       DB_URL: jdbc:mysql://mysql:3306/bayt?connectionTimeZone=UTC
       DB_USER: ${DB_USER:-bayt}

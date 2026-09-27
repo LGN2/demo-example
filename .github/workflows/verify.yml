@@ -1,7 +1,7 @@
 name: Verify application
 on:
   push:
-    branches: [main, 'feat/**']
+    branches: [main, "feat/**"]
   pull_request:
 permissions:
   contents: read
@@ -16,7 +16,7 @@ jobs:
           MYSQL_USER: bayt
           MYSQL_PASSWORD: test-only-password
           MYSQL_ROOT_PASSWORD: test-only-root
-        ports: ['3306:3306']
+        ports: ["3306:3306"]
         options: >-
           --health-cmd="mysqladmin ping -h localhost -ptest-only-root"
           --health-interval=5s --health-timeout=5s --health-retries=30
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
           cache: maven
       - run: chmod +x mvnw && ./mvnw -B verify
       - uses: actions/upload-artifact@v4
@@ -51,7 +51,7 @@ jobs:
           MYSQL_USER: bayt
           MYSQL_PASSWORD: test-only-password
           MYSQL_ROOT_PASSWORD: test-only-root
-        ports: ['3306:3306']
+        ports: ["3306:3306"]
         options: >-
           --health-cmd="mysqladmin ping -h localhost -ptest-only-root"
           --health-interval=5s --health-timeout=5s --health-retries=30
@@ -66,11 +66,11 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
           cache: maven
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - run: sh mvnw -B -DskipTests package
       - run: |
           java -jar target/bayt-1.0.0-SNAPSHOT.jar > app.log 2>&1 &
