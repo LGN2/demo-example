@@ -28,7 +28,8 @@ public class Store {
   }
 
   public <T extends Row> T lock(Class<T> type, Long id) {
-    T row = em.find(type, id, LockModeType.PESSIMISTIC_WRITE);
+    // Refresh under the lock, even when a pre-authorization read already loaded this row.
+    T row = em.find(type, id);
     if (row == null) throw ApiException.missing();
     em.refresh(row, LockModeType.PESSIMISTIC_WRITE);
     return row;

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional
+@Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
 public class MaintenanceService {
   public static final String[] CATEGORIES = {"AC", "PLUMBING", "ELECTRICAL", "LIFT", "OTHER"};
   private final Store db;

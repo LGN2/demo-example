@@ -618,4 +618,33 @@ class PropertyWorkflowIT {
     assertTrue(done.nextDue.isAfter(today));
     assertThrows(ApiException.class, () -> operations.complete(p.id));
   }
+  @Test
+  void concurrentLeaseCreationCannotOverlap() throws Exception {
+    var pool = Executors.newFixedThreadPool(2);
+    CountDownLatch start = new CountDownLatch(1);
+    try {
+      List<Future<Boolean>> attempts = new ArrayList<>();
+      for (int i = 0; i < 2; i++) {
+        attempts.add(pool.submit(() -> {
+          login(owner);
+          try {
+            start.await();
+            properties.lease(leaseInput(unit.id, tenant.id, lease.endDate.plusDays(1)), lease.id);
+            return true;
+          } catch (ApiException e) {
+            assertEquals("LEASE_OVERLAP", e.code);
+            return false;
+          } finally {
+            SecurityContextHolder.clearContext();
+          }
+        }));
+      }
+      start.countDown();
+      int created = 0;
+      for (var result : attempts) if (result.get(20, TimeUnit.SECONDS)) created++;
+      assertEquals(1, created);
+    } finally {
+      pool.shutdownNow();
+    }
+  }
 }
