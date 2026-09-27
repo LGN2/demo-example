@@ -37,6 +37,7 @@ public class SecurityConfig {
                         "/js/**",
                         "/favicon.svg",
                         "/api/auth/csrf",
+                      "/api/health",
                         "/error")
                     .permitAll()
                     .anyRequest()

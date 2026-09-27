@@ -75,12 +75,12 @@ jobs:
       - run: |
           java -jar target/bayt-1.0.0-SNAPSHOT.jar > app.log 2>&1 &
           for attempt in $(seq 1 60); do
-            if curl --silent --fail http://localhost:8080/ > /dev/null; then exit 0; fi
+            if curl --silent --fail http://localhost:8080/api/health > /dev/null; then exit 0; fi
             sleep 2
           done
           cat app.log
           exit 1
-      - run: npm install --prefix tests/browser && npx --prefix tests/browser playwright install --with-deps chromium
+      - run: npm ci --prefix tests/browser && npx --prefix tests/browser playwright install --with-deps chromium
       - run: npm test --prefix tests/browser
       - uses: actions/upload-artifact@v4
         if: always()
