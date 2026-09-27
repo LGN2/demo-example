@@ -1,11 +1,27 @@
 # Implementation progress
 
-Specification: `BUILD_SPECIFICATION.txt`. No separate proposal was attached to this repository. The supplied complete build instructions are the functional baseline.
+Updated 27 September 2026. Work branch: `feat/oman-property-management`.
 
-- Repository started empty; work is on `feat/oman-property-management`.
-- Stack: Java 17, Spring Boot 3.5.16, Spring AI 1.1.8, MySQL 8.4.6, Maven 3.9.11.
-- Runtime here has Java 17 and Node for test tooling, but no Maven, MySQL, or Docker. Maven Central connection timed out. CI will perform Maven/MySQL verification.
-- Next: implement schema, server authorization, tenancy and financial workflows, connected bilingual UI, then operational features and acceptance tests.
-- External services have no supplied credentials or selected providers and remain blocked.
+## Delivered
 
-Completion and test results will be updated before delivery. No production-readiness claim is made during implementation.
+Connected Java 17/Spring Boot/MySQL application, bilingual vanilla-JS frontend, six scoped roles, tenancy/finance/maintenance, Spring AI adapter with manual fallback, standalone operations, file vault, reporting, migration/Compose setup and training documentation. See REQUIREMENTS.md for per-feature status and limitations.
+
+## Executed evidence
+
+[GitHub Actions run 36321308883](https://github.com/LGN2/demo-example/actions/runs/36321308883), commit `bc3557f0a5ad376b7c4080ab938f5607d861e6ab`:
+
+- `./mvnw -B verify`: 9 unit tests and 16 MySQL integration tests passed.
+- `npm test --prefix tests/browser`: passed 21 owner screens, actual payment, tenant maintenance creation, role restrictions, English/Arabic desktop and 360px layouts.
+- Local Maven unit tests also passed (9); full database/browser evidence comes from CI.
+
+## Current verification
+
+Latest readiness and internal-note privacy fixes add a seventeenth database test. Final CI rerun pending. Browser artifact path corrected so screenshots are retained. Human visual/accessibility review and manual checklist are not claimed complete. Postman requests are documented examples; Postman execution is not claimed.
+
+## Remaining dependencies
+
+All provider/hardware integrations are blocked as detailed in INTEGRATIONS.md. Live AI requires a server key. Production scanner, HTTPS, backup restore rehearsal and deployment load/accessibility review require the target environment.
+
+## Next steps
+
+Publish latest commits, run final CI (9 unit + 17 integration + browser), inspect retained screenshots, record evidence, and open a review PR. Do not merge or claim production deployment.

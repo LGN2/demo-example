@@ -87,5 +87,5 @@ jobs:
         with:
           name: browser-evidence
           path: |
-            artifacts/
+            tests/browser/artifacts/
             app.log
