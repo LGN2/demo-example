@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 @Service
-public class AiAssistant {
+public class AiAssistant implements AutoCloseable {
     public record Suggestion(String summary,String category) {}
     public record Result(String status,Suggestion suggestion) {}
     private final ChatClient client;
