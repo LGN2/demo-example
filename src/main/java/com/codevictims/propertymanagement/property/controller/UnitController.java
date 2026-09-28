@@ -1,4 +1,10 @@
 package com.codevictims.propertymanagement.property.controller;
+import com.codevictims.propertymanagement.property.mapper.UnitMapper;
+import com.codevictims.propertymanagement.property.dto.response.UnitResponse;
+import com.codevictims.propertymanagement.property.mapper.UnitMapper;
+import com.codevictims.propertymanagement.property.dto.response.UnitResponse;
+import com.codevictims.propertymanagement.common.mapper.RequestMapper;
+import com.codevictims.propertymanagement.property.dto.request.UnitRequest;
 
 import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.dto.PageSlice;
@@ -38,13 +44,13 @@ public class UnitController {
           result.total(),
           result.page(),
           result.size());
-    return result;
+    return result.map(UnitMapper::toResponse);
   }
 
   @GetMapping("/units/{id}")
-  Object unit(@PathVariable Long id) {
+  public Object unit(@PathVariable Long id) {
     var u = access.unit(id);
-    return Set.of("GUARD", "VENDOR").contains(access.user().role) ? operationalUnit(u) : u;
+    return Set.of("GUARD", "VENDOR").contains(access.user().role) ? operationalUnit(u) : UnitMapper.toResponse(u);
   }
 
   private Map<String, Object> operationalUnit(com.codevictims.propertymanagement.property.entity.Unit u) {
@@ -64,13 +70,13 @@ public class UnitController {
   }
 
   @PostMapping("/units")
-  Object unit(@RequestBody Map<String, Object> b) {
-    return s.unit(new Input(b), null);
+  public UnitResponse unit(@jakarta.validation.Valid @RequestBody UnitRequest b) {
+    return UnitMapper.toResponse(s.unit(RequestMapper.toInput(b), null));
   }
 
   @PutMapping("/units/{id}")
-  Object unit(@PathVariable Long id, @RequestBody Map<String, Object> b) {
-    return s.unit(new Input(b), id);
+  public UnitResponse unit(@PathVariable Long id, @jakarta.validation.Valid @RequestBody UnitRequest b) {
+    return UnitMapper.toResponse(s.unit(RequestMapper.toInput(b), id));
   }
 
 }

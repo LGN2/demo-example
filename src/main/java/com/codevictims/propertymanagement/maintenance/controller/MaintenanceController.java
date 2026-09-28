@@ -1,4 +1,22 @@
 package com.codevictims.propertymanagement.maintenance.controller;
+import com.codevictims.propertymanagement.maintenance.mapper.MaintenanceMapper;
+import com.codevictims.propertymanagement.maintenance.dto.response.MaintenanceResponse;
+import com.codevictims.propertymanagement.maintenance.mapper.MaintenanceMapper;
+import com.codevictims.propertymanagement.maintenance.dto.response.MaintenanceResponse;
+import com.codevictims.propertymanagement.maintenance.mapper.MaintenanceMapper;
+import com.codevictims.propertymanagement.maintenance.dto.response.MaintenanceResponse;
+import com.codevictims.propertymanagement.maintenance.mapper.MaintenanceMapper;
+import com.codevictims.propertymanagement.maintenance.dto.response.MaintenanceResponse;
+import com.codevictims.propertymanagement.maintenance.mapper.MaintenanceMapper;
+import com.codevictims.propertymanagement.maintenance.dto.response.MaintenanceResponse;
+import com.codevictims.propertymanagement.maintenance.mapper.MaintenanceMapper;
+import com.codevictims.propertymanagement.maintenance.dto.response.MaintenanceResponse;
+import com.codevictims.propertymanagement.common.mapper.RequestMapper;
+import com.codevictims.propertymanagement.maintenance.dto.request.AiSuggestionRequest;
+import com.codevictims.propertymanagement.maintenance.dto.request.ApproveSummaryRequest;
+import com.codevictims.propertymanagement.maintenance.dto.request.MaintenanceCommentRequest;
+import com.codevictims.propertymanagement.maintenance.dto.request.MaintenanceRequest;
+import com.codevictims.propertymanagement.maintenance.dto.request.MaintenanceStatusRequest;
 
 import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.dto.PageSlice;
@@ -23,7 +41,7 @@ public class MaintenanceController {
   }
 
   @GetMapping
-  Object list(
+  public PageSlice<MaintenanceResponse> list(
       @RequestParam(required = false) Long buildingId,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size,
@@ -36,40 +54,40 @@ public class MaintenanceController {
         page,
         size,
         q,
-        m -> m.description + " " + m.category + " " + m.status);
+        m -> m.description + " " + m.category + " " + m.status).map(MaintenanceMapper::toResponse);
   }
 
   @GetMapping("/{id}")
-  Object get(@PathVariable Long id) {
-    return access.maintenance(id);
+  public MaintenanceResponse get(@PathVariable Long id) {
+    return MaintenanceMapper.toResponse(access.maintenance(id));
   }
 
   @PostMapping
-  Object create(@RequestBody Map<String, Object> b) {
-    return s.create(new Input(b));
+  public MaintenanceResponse create(@jakarta.validation.Valid @RequestBody MaintenanceRequest b) {
+    return MaintenanceMapper.toResponse(s.create(RequestMapper.toInput(b)));
   }
 
   @PostMapping("/{id}/status")
-  Object transition(@PathVariable Long id, @RequestBody Map<String, Object> b) {
-    return s.transition(id, new Input(b));
+  public MaintenanceResponse transition(@PathVariable Long id, @jakarta.validation.Valid @RequestBody MaintenanceStatusRequest b) {
+    return MaintenanceMapper.toResponse(s.transition(id, RequestMapper.toInput(b)));
   }
 
   @PostMapping("/{id}/comments")
-  void comment(@PathVariable Long id, @RequestBody Map<String, Object> b) {
-    s.comment(id, new Input(b));
+  void comment(@PathVariable Long id, @jakarta.validation.Valid @RequestBody MaintenanceCommentRequest b) {
+    s.comment(id, RequestMapper.toInput(b));
   }
 
   @PostMapping("/{id}/approve-summary")
-  Object approve(@PathVariable Long id, @RequestBody Map<String, Object> b) {
-    return s.approve(id, new Input(b));
+  public MaintenanceResponse approve(@PathVariable Long id, @jakarta.validation.Valid @RequestBody ApproveSummaryRequest b) {
+    return MaintenanceMapper.toResponse(s.approve(id, RequestMapper.toInput(b)));
   }
 
   @PostMapping("/{id}/ai-suggestion")
-  Object suggest(@PathVariable Long id, @RequestBody Map<String, Object> b) {
+  public MaintenanceResponse suggest(@PathVariable Long id, @jakarta.validation.Valid @RequestBody AiSuggestionRequest b) {
     var m = access.maintenance(id);
     access.manage(m.buildingId);
-    String language = new Input(b).choice("language", "ar", "en");
+    String language = RequestMapper.toInput(b).choice("language", "ar", "en");
     // The request is already committed; provider I/O never shares its creation transaction.
-    return s.aiResult(id, ai.suggest(m.description, language));
+    return MaintenanceMapper.toResponse(s.aiResult(id, ai.suggest(m.description, language)));
   }
 }

@@ -18,6 +18,8 @@ public class Errors {
 
   @ExceptionHandler({
     HttpMessageNotReadableException.class,
+    org.springframework.web.bind.MethodArgumentNotValidException.class,
+    org.springframework.validation.BindException.class,
     IllegalArgumentException.class,
     org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class,
     org.springframework.web.bind.MissingServletRequestParameterException.class

@@ -1,4 +1,10 @@
 package com.codevictims.propertymanagement.tenancy.controller;
+import com.codevictims.propertymanagement.tenancy.mapper.TenantMapper;
+import com.codevictims.propertymanagement.tenancy.dto.response.TenantResponse;
+import com.codevictims.propertymanagement.tenancy.mapper.TenantMapper;
+import com.codevictims.propertymanagement.tenancy.dto.response.TenantResponse;
+import com.codevictims.propertymanagement.common.mapper.RequestMapper;
+import com.codevictims.propertymanagement.tenancy.dto.request.TenantRequest;
 
 import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.dto.PageSlice;
@@ -20,23 +26,23 @@ public class TenantController {
   }
 
   @GetMapping("/tenants")
-  Object tenants(
+  public PageSlice<TenantResponse> tenants(
       @RequestParam(required = false) Long buildingId,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size,
       @RequestParam(defaultValue = "") String q) {
     return PageSlice.of(
-        s.tenants(buildingId), page, size, q, t -> t.name + " " + t.phone + " " + t.kind);
+        s.tenants(buildingId), page, size, q, t -> t.name + " " + t.phone + " " + t.kind).map(TenantMapper::toResponse);
   }
 
   @PostMapping("/tenants")
-  Object tenant(@RequestBody Map<String, Object> b) {
-    return s.tenant(new Input(b), null);
+  public TenantResponse tenant(@jakarta.validation.Valid @RequestBody TenantRequest b) {
+    return TenantMapper.toResponse(s.tenant(RequestMapper.toInput(b), null));
   }
 
   @PutMapping("/tenants/{id}")
-  Object tenant(@PathVariable Long id, @RequestBody Map<String, Object> b) {
-    return s.tenant(new Input(b), id);
+  public TenantResponse tenant(@PathVariable Long id, @jakarta.validation.Valid @RequestBody TenantRequest b) {
+    return TenantMapper.toResponse(s.tenant(RequestMapper.toInput(b), id));
   }
 
 }

@@ -1,4 +1,8 @@
 package com.codevictims.propertymanagement.common.controller;
+import com.codevictims.propertymanagement.common.mapper.RequestMapper;
+import com.codevictims.propertymanagement.common.mapper.DocumentMapper;
+import com.codevictims.propertymanagement.common.dto.response.DocumentResponse;
+import com.codevictims.propertymanagement.common.dto.request.DocumentUploadRequest;
 
 import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.dto.PageSlice;
@@ -21,19 +25,18 @@ public class FileController {
   }
 
   @GetMapping
-  Object list(
+  PageSlice<DocumentResponse> list(
       @RequestParam(required = false) Long buildingId,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size,
       @RequestParam(defaultValue = "") String q) {
-    return PageSlice.of(vault.list(buildingId), page, size, q, d -> d.filename + " " + d.kind);
+    return PageSlice.of(vault.list(buildingId), page, size, q, d -> d.filename + " " + d.kind).map(DocumentMapper::toResponse);
   }
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  Object upload(@RequestParam Map<String, String> fields, @RequestParam("file") MultipartFile file)
+  DocumentResponse upload(@jakarta.validation.Valid @ModelAttribute DocumentUploadRequest fields, @RequestParam("file") MultipartFile file)
       throws java.io.IOException {
-    Map<String, Object> data = new HashMap<>(fields);
-    return vault.upload(new Input(data), file);
+    return DocumentMapper.toResponse(vault.upload(RequestMapper.toInput(fields), file));
   }
 
   @GetMapping("/{id}/download")

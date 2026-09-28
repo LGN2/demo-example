@@ -1,4 +1,5 @@
 package com.codevictims.propertymanagement.dashboard.controller;
+import com.codevictims.propertymanagement.common.mapper.AggregateResponseMapper;
 
 import com.codevictims.propertymanagement.billing.service.DocumentRenderer;
 import com.codevictims.propertymanagement.dashboard.service.ReportService;
@@ -28,12 +29,12 @@ public class ReportController {
       @RequestParam(required = false) LocalDate to,
       @RequestParam(required = false) LocalDate asOf) {
     LocalDate today = LocalDate.now(clock);
-    return reports.dashboard(
+    return AggregateResponseMapper.map(reports.dashboard(
         buildingId,
         unitId,
         from == null ? today.withDayOfMonth(1) : from,
         to == null ? today.withDayOfMonth(today.lengthOfMonth()) : to,
-        asOf == null ? today : asOf);
+        asOf == null ? today : asOf));
   }
 
   @GetMapping("/reports/finance.csv")

@@ -1,9 +1,25 @@
 package com.codevictims.propertymanagement.account.controller;
+import com.codevictims.propertymanagement.account.mapper.UserAccountMapper;
+import com.codevictims.propertymanagement.account.dto.response.UserAccountResponse;
+import com.codevictims.propertymanagement.account.mapper.BuildingAccessMapper;
+import com.codevictims.propertymanagement.account.dto.response.BuildingAccessResponse;
+import com.codevictims.propertymanagement.account.mapper.BuildingAccessMapper;
+import com.codevictims.propertymanagement.account.dto.response.BuildingAccessResponse;
+import com.codevictims.propertymanagement.account.mapper.UserAccountMapper;
+import com.codevictims.propertymanagement.account.dto.response.UserAccountResponse;
+import com.codevictims.propertymanagement.account.mapper.UserAccountMapper;
+import com.codevictims.propertymanagement.account.dto.response.UserAccountResponse;
+import com.codevictims.propertymanagement.common.mapper.RequestMapper;
+import com.codevictims.propertymanagement.account.dto.request.BuildingAccessRequest;
+import com.codevictims.propertymanagement.account.dto.request.ChangePasswordRequest;
+import com.codevictims.propertymanagement.account.dto.request.CreateUserRequest;
+import com.codevictims.propertymanagement.account.dto.request.OwnerTaxStatusRequest;
 
 import com.codevictims.propertymanagement.account.service.AccountService;
 import com.codevictims.propertymanagement.common.dto.Input;
 
 import java.util.Map;
+import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,23 +32,23 @@ public class AccountController {
   }
 
   @GetMapping("/users")
-  Object list() {
-    return service.list();
+  public List<UserAccountResponse> list() {
+    return service.list().stream().map(UserAccountMapper::toResponse).toList();
   }
 
   @PostMapping("/users")
-  Object create(@RequestBody Map<String, Object> b) {
-    return service.create(new Input(b));
+  public UserAccountResponse create(@jakarta.validation.Valid @RequestBody CreateUserRequest b) {
+    return UserAccountMapper.toResponse(service.create(RequestMapper.toInput(b)));
   }
 
   @GetMapping("/access")
-  Object grants(@RequestParam Long buildingId) {
-    return service.grants(buildingId);
+  public List<BuildingAccessResponse> grants(@RequestParam Long buildingId) {
+    return service.grants(buildingId).stream().map(BuildingAccessMapper::toResponse).toList();
   }
 
   @PostMapping("/access")
-  Object grant(@RequestBody Map<String, Object> b) {
-    return service.assign(new Input(b));
+  public BuildingAccessResponse grant(@jakarta.validation.Valid @RequestBody BuildingAccessRequest b) {
+    return BuildingAccessMapper.toResponse(service.assign(RequestMapper.toInput(b)));
   }
 
   @DeleteMapping("/access/{id}")
@@ -41,12 +57,12 @@ public class AccountController {
   }
 
   @PostMapping("/auth/password")
-  void password(@RequestBody Map<String, Object> b) {
-    service.password(new Input(b));
+  void password(@jakarta.validation.Valid @RequestBody ChangePasswordRequest b) {
+    service.password(RequestMapper.toInput(b));
   }
 
   @PutMapping("/owner/tax-status")
-  Object tax(@RequestBody Map<String, Object> b) {
-    return service.tax(new Input(b));
+  public UserAccountResponse tax(@jakarta.validation.Valid @RequestBody OwnerTaxStatusRequest b) {
+    return UserAccountMapper.toResponse(service.tax(RequestMapper.toInput(b)));
   }
 }

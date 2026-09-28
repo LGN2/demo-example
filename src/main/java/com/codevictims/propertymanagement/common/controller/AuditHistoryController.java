@@ -1,4 +1,6 @@
 package com.codevictims.propertymanagement.common.controller;
+import com.codevictims.propertymanagement.common.mapper.AuditEventMapper;
+import com.codevictims.propertymanagement.common.dto.response.AuditEventResponse;
 
 import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.dto.PageSlice;
@@ -20,6 +22,6 @@ public class AuditHistoryController {
   }
 
   @GetMapping("/history/{type}/{id}")
-  Object history(@PathVariable String type, @PathVariable Long id) {
-    return s.history(type, id);
+  public List<AuditEventResponse> history(@PathVariable String type, @PathVariable Long id) {
+    return s.history(type, id).stream().map(AuditEventMapper::toResponse).toList();
   }}

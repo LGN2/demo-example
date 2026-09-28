@@ -1,4 +1,37 @@
 package com.codevictims.propertymanagement.billing.controller;
+import com.codevictims.propertymanagement.billing.dto.response.DepositLedgerResponse;
+import com.codevictims.propertymanagement.billing.mapper.ExpenseMapper;
+import com.codevictims.propertymanagement.billing.dto.response.ExpenseResponse;
+import com.codevictims.propertymanagement.billing.mapper.ExpenseMapper;
+import com.codevictims.propertymanagement.billing.dto.response.ExpenseResponse;
+import com.codevictims.propertymanagement.billing.mapper.ExpenseMapper;
+import com.codevictims.propertymanagement.billing.dto.response.ExpenseResponse;
+import com.codevictims.propertymanagement.billing.mapper.FollowUpMapper;
+import com.codevictims.propertymanagement.billing.dto.response.FollowUpResponse;
+import com.codevictims.propertymanagement.billing.mapper.FollowUpMapper;
+import com.codevictims.propertymanagement.billing.dto.response.FollowUpResponse;
+import com.codevictims.propertymanagement.billing.mapper.DepositEntryMapper;
+import com.codevictims.propertymanagement.billing.dto.response.DepositEntryResponse;
+import com.codevictims.propertymanagement.billing.mapper.ChequeMapper;
+import com.codevictims.propertymanagement.billing.dto.response.ChequeResponse;
+import com.codevictims.propertymanagement.billing.mapper.ChequeMapper;
+import com.codevictims.propertymanagement.billing.dto.response.ChequeResponse;
+import com.codevictims.propertymanagement.billing.mapper.ChequeMapper;
+import com.codevictims.propertymanagement.billing.dto.response.ChequeResponse;
+import com.codevictims.propertymanagement.billing.mapper.PaymentMapper;
+import com.codevictims.propertymanagement.billing.dto.response.PaymentResponse;
+import com.codevictims.propertymanagement.billing.mapper.PaymentMapper;
+import com.codevictims.propertymanagement.billing.dto.response.PaymentResponse;
+import com.codevictims.propertymanagement.billing.mapper.PaymentMapper;
+import com.codevictims.propertymanagement.billing.dto.response.PaymentResponse;
+import com.codevictims.propertymanagement.common.mapper.RequestMapper;
+import com.codevictims.propertymanagement.billing.dto.request.ChequeRequest;
+import com.codevictims.propertymanagement.billing.dto.request.ChequeStatusRequest;
+import com.codevictims.propertymanagement.billing.dto.request.DepositRequest;
+import com.codevictims.propertymanagement.billing.dto.request.ExpenseRequest;
+import com.codevictims.propertymanagement.billing.dto.request.FollowUpRequest;
+import com.codevictims.propertymanagement.billing.dto.request.PaymentRequest;
+import com.codevictims.propertymanagement.billing.dto.request.ReversalRequest;
 
 import com.codevictims.propertymanagement.billing.service.FinanceService;
 import com.codevictims.propertymanagement.common.dto.Input;
@@ -28,57 +61,57 @@ public class FinanceController {
   }
 
   @GetMapping("/leases/{id}/payments")
-  Object payments(@PathVariable Long id) {
-    return s.payments(id);
+  public List<PaymentResponse> payments(@PathVariable Long id) {
+    return s.payments(id).stream().map(PaymentMapper::toResponse).toList();
   }
 
   @PostMapping("/leases/{id}/payments")
-  Object payment(@PathVariable Long id, @RequestBody Map<String, Object> b) {
-    return s.payment(id, new Input(b));
+  public PaymentResponse payment(@PathVariable Long id, @jakarta.validation.Valid @RequestBody PaymentRequest b) {
+    return PaymentMapper.toResponse(s.payment(id, RequestMapper.toInput(b)));
   }
 
   @PostMapping("/payments/{id}/reverse")
-  Object reverse(@PathVariable Long id, @RequestBody Map<String, Object> b) {
-    return s.reverse(id, new Input(b));
+  public PaymentResponse reverse(@PathVariable Long id, @jakarta.validation.Valid @RequestBody ReversalRequest b) {
+    return PaymentMapper.toResponse(s.reverse(id, RequestMapper.toInput(b)));
   }
 
   @GetMapping("/leases/{id}/cheques")
-  Object cheques(@PathVariable Long id) {
-    return s.cheques(id);
+  public List<ChequeResponse> cheques(@PathVariable Long id) {
+    return s.cheques(id).stream().map(ChequeMapper::toResponse).toList();
   }
 
   @PostMapping("/leases/{id}/cheques")
-  Object cheque(@PathVariable Long id, @RequestBody Map<String, Object> b) {
-    return s.cheque(id, new Input(b));
+  public ChequeResponse cheque(@PathVariable Long id, @jakarta.validation.Valid @RequestBody ChequeRequest b) {
+    return ChequeMapper.toResponse(s.cheque(id, RequestMapper.toInput(b)));
   }
 
   @PostMapping("/cheques/{id}/status")
-  Object chequeStatus(@PathVariable Long id, @RequestBody Map<String, Object> b) {
-    return s.transitionCheque(id, new Input(b));
+  public ChequeResponse chequeStatus(@PathVariable Long id, @jakarta.validation.Valid @RequestBody ChequeStatusRequest b) {
+    return ChequeMapper.toResponse(s.transitionCheque(id, RequestMapper.toInput(b)));
   }
 
   @GetMapping("/leases/{id}/deposits")
-  Object deposits(@PathVariable Long id) {
-    return Map.of("entries", s.deposits(id), "held", s.held(id));
+  public DepositLedgerResponse deposits(@PathVariable Long id) {
+    return new DepositLedgerResponse(s.deposits(id).stream().map(DepositEntryMapper::toResponse).toList(), s.held(id));
   }
 
   @PostMapping("/leases/{id}/deposits")
-  Object deposit(@PathVariable Long id, @RequestBody Map<String, Object> b) {
-    return s.deposit(id, new Input(b));
+  public DepositEntryResponse deposit(@PathVariable Long id, @jakarta.validation.Valid @RequestBody DepositRequest b) {
+    return DepositEntryMapper.toResponse(s.deposit(id, RequestMapper.toInput(b)));
   }
 
   @GetMapping("/leases/{id}/follow-ups")
-  Object followUps(@PathVariable Long id) {
-    return s.followUps(id);
+  public List<FollowUpResponse> followUps(@PathVariable Long id) {
+    return s.followUps(id).stream().map(FollowUpMapper::toResponse).toList();
   }
 
   @PostMapping("/leases/{id}/follow-ups")
-  Object followUp(@PathVariable Long id, @RequestBody Map<String, Object> b) {
-    return s.followUp(id, new Input(b));
+  public FollowUpResponse followUp(@PathVariable Long id, @jakarta.validation.Valid @RequestBody FollowUpRequest b) {
+    return FollowUpMapper.toResponse(s.followUp(id, RequestMapper.toInput(b)));
   }
 
   @GetMapping("/expenses")
-  Object expenses(
+  public PageSlice<ExpenseResponse> expenses(
       @RequestParam(required = false) Long buildingId,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size,
@@ -88,16 +121,16 @@ public class FinanceController {
         page,
         size,
         q,
-        e -> e.category + " " + e.description);
+        e -> e.category + " " + e.description).map(ExpenseMapper::toResponse);
   }
 
   @PostMapping("/expenses")
-  Object expense(@RequestBody Map<String, Object> b) {
-    return s.expense(new Input(b));
+  public ExpenseResponse expense(@jakarta.validation.Valid @RequestBody ExpenseRequest b) {
+    return ExpenseMapper.toResponse(s.expense(RequestMapper.toInput(b)));
   }
 
   @PostMapping("/expenses/{id}/reverse")
-  Object reverseExpense(@PathVariable Long id, @RequestBody Map<String, Object> b) {
-    return s.reverseExpense(id, new Input(b));
+  public ExpenseResponse reverseExpense(@PathVariable Long id, @jakarta.validation.Valid @RequestBody ReversalRequest b) {
+    return ExpenseMapper.toResponse(s.reverseExpense(id, RequestMapper.toInput(b)));
   }
 }

@@ -1,4 +1,10 @@
 package com.codevictims.propertymanagement.billing.controller;
+import com.codevictims.propertymanagement.billing.mapper.TaxPolicyMapper;
+import com.codevictims.propertymanagement.billing.dto.response.TaxPolicyResponse;
+import com.codevictims.propertymanagement.billing.mapper.TaxPolicyMapper;
+import com.codevictims.propertymanagement.billing.dto.response.TaxPolicyResponse;
+import com.codevictims.propertymanagement.common.mapper.RequestMapper;
+import com.codevictims.propertymanagement.billing.dto.request.TaxPolicyRequest;
 
 import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.dto.PageSlice;
@@ -20,13 +26,13 @@ public class TaxPolicyController {
   }
 
   @GetMapping("/tax-policies")
-  Object taxes(@RequestParam(required = false) Long buildingId) {
-    return s.taxes(buildingId);
+  public List<TaxPolicyResponse> taxes(@RequestParam(required = false) Long buildingId) {
+    return s.taxes(buildingId).stream().map(TaxPolicyMapper::toResponse).toList();
   }
 
   @PostMapping("/tax-policies")
-  Object tax(@RequestBody Map<String, Object> b) {
-    return s.tax(new Input(b));
+  public TaxPolicyResponse tax(@jakarta.validation.Valid @RequestBody TaxPolicyRequest b) {
+    return TaxPolicyMapper.toResponse(s.tax(RequestMapper.toInput(b)));
   }
 
 }
