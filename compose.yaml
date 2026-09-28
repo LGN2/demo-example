@@ -1,0 +1,37 @@
+services:
+  mysql:
+    image: mysql:8.4.6
+    environment:
+      MYSQL_DATABASE: bayt
+      MYSQL_USER: ${DB_USER:-bayt}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in .env}
+    ports: ["127.0.0.1:3306:3306"]
+    volumes: ["mysql-data:/var/lib/mysql"]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  app:
+    build: .
+    ports: ["127.0.0.1:8080:8080"]
+    depends_on:
+      mysql: { condition: service_healthy }
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/bayt?connectionTimeZone=UTC
+      DB_USER: ${DB_USER:-bayt}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-BaytDemo!2026}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-gpt-4.1-mini}
+    volumes: ["protected-files:/data"]
+volumes:
+  mysql-data:
+  protected-files:

@@ -1,0 +1,8 @@
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
+app:
+  demo-password: ${DEMO_PASSWORD:BaytDemo!2026}
+  allow-unscanned-uploads: true

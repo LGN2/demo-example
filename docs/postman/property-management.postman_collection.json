@@ -1,0 +1,1639 @@
+{
+  "info": {
+    "name": "Bayt Oman API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Development only. Use individual requests with API.md; mutation payloads need actual IDs. Retain Postman cookies. Provider/device calls are not included."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "username",
+      "value": "owner@demo.test"
+    },
+    {
+      "key": "password",
+      "value": "BaytDemo!2026"
+    },
+    {
+      "key": "recordId",
+      "value": "1"
+    },
+    {
+      "key": "leaseId",
+      "value": "1"
+    },
+    {
+      "key": "type",
+      "value": "lease"
+    },
+    {
+      "key": "paymentKey",
+      "value": "postman-training-001"
+    },
+    {
+      "key": "historyType",
+      "value": "LEASE"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.variables.set(\"today\", new Intl.DateTimeFormat(\"en-CA\", {timeZone:\"Asia/Muscat\"}).format(new Date()));",
+          "if (![\"GET\", \"HEAD\", \"OPTIONS\"].includes(pm.request.method)) {",
+          "  pm.sendRequest(pm.variables.get(\"baseUrl\") + \"/api/auth/csrf\", (err, res) => {",
+          "    if (err || res.code !== 200) throw new Error(\"CSRF token request failed\");",
+          "    const csrf = res.json();",
+          "    pm.request.headers.upsert({key: csrf.headerName, value: csrf.token});",
+          "  });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Login (development demo)",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/api/auth/login",
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "username",
+              "value": "{{username}}"
+            },
+            {
+              "key": "password",
+              "value": "{{password}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /users",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/users",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /users",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/users",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"training@demo.test\",\n  \"displayName\": \"Training Manager\",\n  \"password\": \"ChangeThis!2026\",\n  \"role\": \"MANAGER\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /access",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/access?buildingId=1",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /access",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/access",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"userId\": 3,\n  \"canWrite\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "DELETE /access/{{recordId}}",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": "{{baseUrl}}/api/access/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /auth/password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/auth/password",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"ChangeMeSecure!2026\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PUT /owner/tax-status",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/owner/tax-status",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"taxRegistered\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /auth/csrf",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/auth/csrf",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /auth/me",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/auth/me",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /documents",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/documents",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /documents",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/api/documents",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "type": "file",
+              "src": []
+            },
+            {
+              "key": "buildingId",
+              "type": "text",
+              "value": "1"
+            },
+            {
+              "key": "kind",
+              "type": "text",
+              "value": "TITLE_DEED"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "GET /documents/{{recordId}}/download",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/documents/{{recordId}}/download",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /leases/{{recordId}}/dues",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}/dues",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /leases/{{recordId}}/payments",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}/payments",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /leases/{{recordId}}/payments",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}/payments",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": \"10.000\",\n  \"method\": \"BANK_TRANSFER\",\n  \"effectiveDate\": \"{{today}}\",\n  \"idempotencyKey\": \"{{paymentKey}}\",\n  \"reference\": \"Training payment\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /payments/{{recordId}}/reverse",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/payments/{{recordId}}/reverse",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Training correction\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /leases/{{recordId}}/cheques",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}/cheques",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /leases/{{recordId}}/cheques",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}/cheques",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"chequeNumber\": \"TRAINING-001\",\n  \"bank\": \"Training Bank\",\n  \"chequeDate\": \"2027-01-01\",\n  \"amount\": \"200.000\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /cheques/{{recordId}}/status",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/cheques/{{recordId}}/status",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"DEPOSITED\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /leases/{{recordId}}/deposits",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}/deposits",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /leases/{{recordId}}/deposits",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}/deposits",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"kind\": \"RECEIPT\",\n  \"amount\": \"10.000\",\n  \"effectiveDate\": \"{{today}}\",\n  \"reason\": \"Training receipt\",\n  \"idempotencyKey\": \"training-deposit-001\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /leases/{{recordId}}/follow-ups",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}/follow-ups",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /leases/{{recordId}}/follow-ups",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}/follow-ups",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"note\": \"Internal training note\",\n  \"nextDate\": \"2027-01-01\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /expenses",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/expenses",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /expenses",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/expenses",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"amount\": \"10.000\",\n  \"expenseDate\": \"{{today}}\",\n  \"category\": \"MAINTENANCE\",\n  \"description\": \"Training repair\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /expenses/{{recordId}}/reverse",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/expenses/{{recordId}}/reverse",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Training correction\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /maintenance",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/maintenance",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /maintenance/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/maintenance/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /maintenance",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/maintenance",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"unitId\": 1,\n  \"description\": \"تسرب مياه في المطبخ\",\n  \"category\": \"PLUMBING\",\n  \"urgent\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /maintenance/{{recordId}}/status",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/maintenance/{{recordId}}/status",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"ASSIGNED\",\n  \"assignedTo\": 3,\n  \"note\": \"Training assignment\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /maintenance/{{recordId}}/comments",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/maintenance/{{recordId}}/comments",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"note\": \"Training update\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /maintenance/{{recordId}}/approve-summary",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/maintenance/{{recordId}}/approve-summary",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"summary\": \"تسرب مياه في المطبخ\",\n  \"category\": \"PLUMBING\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /maintenance/{{recordId}}/ai-suggestion",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/maintenance/{{recordId}}/ai-suggestion",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"language\": \"ar\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /operations/safety",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/safety",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/preventive",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/preventive",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/vendors",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/vendors",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/meters",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/meters",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/notices",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/notices",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/leads",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/leads",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/visits",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/visits",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/checkins",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/checkins",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/parking",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/parking",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/safety/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/safety/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/preventive/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/preventive/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/vendors/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/vendors/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/meters/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/meters/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/notices/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/notices/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/leads/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/leads/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/visits/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/visits/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/checkins/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/checkins/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /operations/parking/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/parking/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /operations/safety",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/safety",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"kind\": \"FIRE_EXTINGUISHER\",\n  \"reference\": \"TRAINING-001\",\n  \"expiryDate\": \"2027-01-01\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /operations/preventive",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/preventive",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"title\": \"AC filter cleaning\",\n  \"category\": \"AC\",\n  \"intervalDays\": 30,\n  \"nextDue\": \"{{today}}\",\n  \"enabled\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /operations/vendors",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/vendors",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"userId\": 6,\n  \"name\": \"Training vendor\",\n  \"categories\": \"AC,PLUMBING\",\n  \"hourlyRate\": \"10.000\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /operations/meters",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/meters",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"accountNumber\": \"TRAINING-001\",\n  \"kind\": \"WATER\",\n  \"responsibility\": \"OWNER\",\n  \"commonArea\": true,\n  \"alertThreshold\": \"100\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /operations/notices",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/notices",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"titleAr\": \"إشعار تجريبي\",\n  \"titleEn\": \"Training notice\",\n  \"bodyAr\": \"موعد الصيانة\",\n  \"bodyEn\": \"Scheduled maintenance\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /operations/leads",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/leads",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"unitId\": 2,\n  \"name\": \"Training prospect\",\n  \"phone\": \"00000000\",\n  \"status\": \"NEW\",\n  \"notes\": \"Synthetic enquiry\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /operations/visits",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/visits",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"visitorName\": \"Training visitor\",\n  \"purpose\": \"Maintenance\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /operations/checkins",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/checkins",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"note\": \"Training shift\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /operations/parking",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/parking",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"unitId\": 1,\n  \"space\": \"P-01\",\n  \"vehicle\": \"TRAINING\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PUT /operations/safety/{{recordId}}",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/safety/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"kind\": \"FIRE_EXTINGUISHER\",\n  \"reference\": \"TRAINING-001\",\n  \"expiryDate\": \"2027-01-01\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PUT /operations/preventive/{{recordId}}",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/preventive/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"title\": \"AC filter cleaning\",\n  \"category\": \"AC\",\n  \"intervalDays\": 30,\n  \"nextDue\": \"{{today}}\",\n  \"enabled\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PUT /operations/vendors/{{recordId}}",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/vendors/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"userId\": 6,\n  \"name\": \"Training vendor\",\n  \"categories\": \"AC,PLUMBING\",\n  \"hourlyRate\": \"10.000\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PUT /operations/meters/{{recordId}}",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/meters/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"accountNumber\": \"TRAINING-001\",\n  \"kind\": \"WATER\",\n  \"responsibility\": \"OWNER\",\n  \"commonArea\": true,\n  \"alertThreshold\": \"100\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PUT /operations/notices/{{recordId}}",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/notices/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"titleAr\": \"إشعار تجريبي\",\n  \"titleEn\": \"Training notice\",\n  \"bodyAr\": \"موعد الصيانة\",\n  \"bodyEn\": \"Scheduled maintenance\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PUT /operations/leads/{{recordId}}",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/leads/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"unitId\": 2,\n  \"name\": \"Training prospect\",\n  \"phone\": \"00000000\",\n  \"status\": \"NEW\",\n  \"notes\": \"Synthetic enquiry\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PUT /operations/parking/{{recordId}}",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/parking/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"unitId\": 1,\n  \"space\": \"P-01\",\n  \"vehicle\": \"TRAINING\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /operations/visits/{{recordId}}/checkout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/visits/{{recordId}}/checkout",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /operations/preventive/{{recordId}}/complete",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/preventive/{{recordId}}/complete",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /operations/meters/{{recordId}}/readings",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/operations/meters/{{recordId}}/readings",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /operations/meters/{{recordId}}/readings",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/operations/meters/{{recordId}}/readings",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"readingDate\": \"{{today}}\",\n  \"value\": \"100\",\n  \"kind\": \"ROUTINE\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /vendor-performance",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/vendor-performance",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /assignees",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/assignees?buildingId=1",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /buildings",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/buildings",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /buildings",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/buildings",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Training building\",\n  \"wilayat\": \"Muscat\",\n  \"address\": \"Synthetic address\",\n  \"investmentValue\": \"100000.000\",\n  \"reminderDays\": 90,\n  \"seasonalStart\": 5,\n  \"seasonalEnd\": 9\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PUT /buildings/{{recordId}}",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/buildings/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Training building\",\n  \"wilayat\": \"Muscat\",\n  \"address\": \"Synthetic address\",\n  \"investmentValue\": \"100000.000\",\n  \"reminderDays\": 90,\n  \"seasonalStart\": 5,\n  \"seasonalEnd\": 9\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /units",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/units",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /units/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/units/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /units",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/units",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"code\": \"A-101\",\n  \"floorName\": \"1\",\n  \"size\": \"90\",\n  \"kind\": \"RESIDENTIAL\",\n  \"availability\": \"AVAILABLE\",\n  \"marketRent\": \"300.000\",\n  \"listing\": \"Two bedrooms\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PUT /units/{{recordId}}",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/units/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"code\": \"A-101\",\n  \"floorName\": \"1\",\n  \"size\": \"90\",\n  \"kind\": \"RESIDENTIAL\",\n  \"availability\": \"AVAILABLE\",\n  \"marketRent\": \"300.000\",\n  \"listing\": \"Two bedrooms\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /tenants",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/tenants",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /tenants",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/tenants",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"name\": \"Training Tenant\",\n  \"kind\": \"PERSON\",\n  \"phone\": \"00000000\",\n  \"emergencyContact\": \"Training contact\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PUT /tenants/{{recordId}}",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/tenants/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"name\": \"Training Tenant\",\n  \"kind\": \"PERSON\",\n  \"phone\": \"00000000\",\n  \"emergencyContact\": \"Training contact\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /leases",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/leases",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /leases/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /leases",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/leases",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"unitId\": 1,\n  \"tenantId\": 1,\n  \"startDate\": \"2027-01-01\",\n  \"months\": 12,\n  \"rent\": \"300.000\",\n  \"deposit\": \"300.000\",\n  \"taxPolicyId\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /leases/{{recordId}}/renew",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}/renew",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"unitId\": 1,\n  \"tenantId\": 1,\n  \"startDate\": \"2027-01-01\",\n  \"months\": 12,\n  \"rent\": \"300.000\",\n  \"deposit\": \"300.000\",\n  \"taxPolicyId\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "POST /leases/{{recordId}}/terminate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}/terminate",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"terminatedOn\": \"{{today}}\",\n  \"reason\": \"Training termination\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "PUT /leases/{{recordId}}/municipality",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/leases/{{recordId}}/municipality",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"municipalityStatus\": \"SUBMITTED\",\n  \"municipalityAuthority\": \"Training authority\",\n  \"municipalityReference\": \"TRAINING\",\n  \"municipalityFee\": \"0.000\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /tax-policies",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/tax-policies",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /tax-policies",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/api/tax-policies",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buildingId\": 1,\n  \"treatment\": \"EXEMPT\",\n  \"supplyClassification\": \"Training supply - confirm treatment\",\n  \"rate\": \"0\",\n  \"effectiveFrom\": \"2027-01-01\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "GET /history/{{historyType}}/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/history/{{historyType}}/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /dashboard",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/dashboard",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /reports/finance.csv",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/reports/finance.csv",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "GET /print/{{type}}/{{recordId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/print/{{type}}/{{recordId}}",
+        "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
+      }
+    },
+    {
+      "name": "POST /auth/logout",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": "{{baseUrl}}/api/auth/logout"
+      }
+    },
+    {
+      "name": "GET /integrations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/integrations"
+      }
+    },
+    {
+      "name": "GET /health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{baseUrl}}/api/health"
+      }
+    }
+  ]
+}

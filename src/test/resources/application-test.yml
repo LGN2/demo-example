@@ -1,0 +1,9 @@
+# Integration tests use a real MySQL database supplied through DB_URL/DB_USER/DB_PASSWORD.
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
+app:
+  allow-unscanned-uploads: true
+  storage: target/test-vault
