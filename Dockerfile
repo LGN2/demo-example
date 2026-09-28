@@ -7,7 +7,7 @@ RUN mvn -B -DskipTests package
 FROM eclipse-temurin:17-jre
 RUN groupadd --system bayt && useradd --system --gid bayt bayt && mkdir /data && chown bayt:bayt /data
 WORKDIR /app
-COPY --from=build /build/target/bayt-1.0.0-SNAPSHOT.jar app.jar
+COPY --from=build /build/target/property-management-1.0.0-SNAPSHOT.jar app.jar
 USER bayt
 ENV STORAGE_PATH=/data
 EXPOSE 8080

@@ -73,7 +73,7 @@ jobs:
           node-version: "22"
       - run: sh mvnw -B -DskipTests package
       - run: |
-          java -jar target/bayt-1.0.0-SNAPSHOT.jar > app.log 2>&1 &
+          java -jar target/property-management-1.0.0-SNAPSHOT.jar > app.log 2>&1 &
           for attempt in $(seq 1 60); do
             if curl --silent --fail http://localhost:8080/api/health > /dev/null; then exit 0; fi
             sleep 2
