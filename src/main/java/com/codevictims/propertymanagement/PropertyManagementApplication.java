@@ -1,7 +1,5 @@
 package com.codevictims.propertymanagement;
 
-
-
 import java.time.Clock;
 import java.time.ZoneId;
 import org.springframework.boot.SpringApplication;

@@ -1,9 +1,7 @@
 package com.codevictims.propertymanagement.dashboard.service;
-import com.codevictims.propertymanagement.tenancy.service.TenancyService;
-
 
 import com.codevictims.propertymanagement.billing.service.FinanceService;
-import com.codevictims.propertymanagement.common.repository.Store;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
 import com.codevictims.propertymanagement.common.service.FileVault;
 import com.codevictims.propertymanagement.maintenance.entity.PreventiveTask;
 import com.codevictims.propertymanagement.property.entity.Building;
@@ -13,7 +11,7 @@ import com.codevictims.propertymanagement.property.service.PropertyService;
 import com.codevictims.propertymanagement.security.service.Access;
 import com.codevictims.propertymanagement.tenancy.entity.Lead;
 import com.codevictims.propertymanagement.tenancy.entity.Lease;
-
+import com.codevictims.propertymanagement.tenancy.service.TenancyService;
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -23,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class ReminderService {
   private final TenancyService tenancyService;
+
   public record Reminder(
       String type, Long id, Long buildingId, LocalDate dueDate, String title, String link) {}
 
@@ -31,7 +30,7 @@ public class ReminderService {
   private final FileVault vault;
   private final OperationsService operations;
   private final Access access;
-  private final Store db;
+  private final PersistenceSupport db;
   private final Clock clock;
 
   public ReminderService(
@@ -40,8 +39,9 @@ public class ReminderService {
       FileVault vault,
       OperationsService operations,
       Access access,
-      Store db,
-      Clock clock, TenancyService tenancyService) {
+      PersistenceSupport db,
+      Clock clock,
+      TenancyService tenancyService) {
     this.tenancyService = tenancyService;
     this.properties = properties;
     this.finance = finance;

@@ -1,7 +1,5 @@
 package com.codevictims.propertymanagement.common.exception;
 
-
-
 public class ApiException extends RuntimeException {
   public final int status;
   public final String code;

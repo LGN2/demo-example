@@ -1,16 +1,12 @@
 package com.codevictims.propertymanagement.tenancy.controller;
-import com.codevictims.propertymanagement.tenancy.mapper.TenantMapper;
-import com.codevictims.propertymanagement.tenancy.dto.response.TenantResponse;
-import com.codevictims.propertymanagement.tenancy.mapper.TenantMapper;
-import com.codevictims.propertymanagement.tenancy.dto.response.TenantResponse;
-import com.codevictims.propertymanagement.common.mapper.RequestMapper;
-import com.codevictims.propertymanagement.tenancy.dto.request.TenantRequest;
 
-import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.dto.PageSlice;
-import com.codevictims.propertymanagement.tenancy.service.TenancyService;
+import com.codevictims.propertymanagement.common.mapper.RequestMapper;
 import com.codevictims.propertymanagement.security.service.Access;
-
+import com.codevictims.propertymanagement.tenancy.dto.request.TenantRequest;
+import com.codevictims.propertymanagement.tenancy.dto.response.TenantResponse;
+import com.codevictims.propertymanagement.tenancy.mapper.TenantMapper;
+import com.codevictims.propertymanagement.tenancy.service.TenancyService;
 import java.util.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +28,8 @@ public class TenantController {
       @RequestParam(defaultValue = "20") int size,
       @RequestParam(defaultValue = "") String q) {
     return PageSlice.of(
-        s.tenants(buildingId), page, size, q, t -> t.name + " " + t.phone + " " + t.kind).map(TenantMapper::toResponse);
+            s.tenants(buildingId), page, size, q, t -> t.name + " " + t.phone + " " + t.kind)
+        .map(TenantMapper::toResponse);
   }
 
   @PostMapping("/tenants")
@@ -41,8 +38,8 @@ public class TenantController {
   }
 
   @PutMapping("/tenants/{id}")
-  public TenantResponse tenant(@PathVariable Long id, @jakarta.validation.Valid @RequestBody TenantRequest b) {
+  public TenantResponse tenant(
+      @PathVariable Long id, @jakarta.validation.Valid @RequestBody TenantRequest b) {
     return TenantMapper.toResponse(s.tenant(RequestMapper.toInput(b), id));
   }
-
 }

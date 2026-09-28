@@ -1,14 +1,13 @@
 package com.codevictims.propertymanagement.maintenance.entity;
 
-import com.codevictims.propertymanagement.common.entity.Row;
-
+import com.codevictims.propertymanagement.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.*;
 
 @Entity
 @Table(name = "vendor_profile")
-public class VendorProfile extends Row {
+public class VendorProfile extends BaseEntity {
   @Column(nullable = false)
   public Long buildingId;
 

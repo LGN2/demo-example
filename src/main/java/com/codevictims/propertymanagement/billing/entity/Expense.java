@@ -1,14 +1,13 @@
 package com.codevictims.propertymanagement.billing.entity;
 
-import com.codevictims.propertymanagement.common.entity.Row;
-
+import com.codevictims.propertymanagement.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.*;
 
 @Entity
 @Table(name = "expense")
-public class Expense extends Row {
+public class Expense extends BaseEntity {
   @Column(nullable = false)
   public Long buildingId;
 

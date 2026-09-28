@@ -1,15 +1,15 @@
 package com.codevictims.propertymanagement.property.service;
 
-import com.codevictims.propertymanagement.account.entity.BuildingAccess;
 import com.codevictims.propertymanagement.account.entity.UserAccount;
+import com.codevictims.propertymanagement.account.repository.UserRepository;
 import com.codevictims.propertymanagement.common.dto.Input;
-import com.codevictims.propertymanagement.common.entity.Row;
+import com.codevictims.propertymanagement.common.entity.BaseEntity;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-import com.codevictims.propertymanagement.common.repository.Store;
-import com.codevictims.propertymanagement.common.service.Audit;
-import com.codevictims.propertymanagement.maintenance.entity.Maintenance;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
+import com.codevictims.propertymanagement.common.service.AuditService;
 import com.codevictims.propertymanagement.maintenance.entity.PreventiveTask;
 import com.codevictims.propertymanagement.maintenance.entity.VendorProfile;
+import com.codevictims.propertymanagement.maintenance.repository.MaintenanceRepository;
 import com.codevictims.propertymanagement.maintenance.service.MaintenanceService;
 import com.codevictims.propertymanagement.property.entity.Building;
 import com.codevictims.propertymanagement.property.entity.GuardCheckIn;
@@ -20,9 +20,9 @@ import com.codevictims.propertymanagement.property.entity.Parking;
 import com.codevictims.propertymanagement.property.entity.SafetyRecord;
 import com.codevictims.propertymanagement.property.entity.Unit;
 import com.codevictims.propertymanagement.property.entity.Visit;
+import com.codevictims.propertymanagement.property.repository.MeterReadingRepository;
 import com.codevictims.propertymanagement.security.service.Access;
 import com.codevictims.propertymanagement.tenancy.entity.Lead;
-
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -31,12 +31,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
 public class OperationsService {
-  private final Store db;
+  private final MeterReadingRepository meterReadingRepository;
+  private final MaintenanceRepository maintenanceRepository;
+  private final UserRepository userRepository;
+  private final PersistenceSupport db;
   private final Access access;
-  private final Audit audit;
+  private final AuditService audit;
   private final PropertyService properties;
   private final Clock clock;
-  private static final Map<String, Class<? extends Row>> TYPES =
+  private static final Map<String, Class<? extends BaseEntity>> TYPES =
       Map.of(
           "safety",
           SafetyRecord.class,
@@ -58,7 +61,17 @@ public class OperationsService {
           Parking.class);
 
   public OperationsService(
-      Store db, Access access, Audit audit, PropertyService properties, Clock clock) {
+      PersistenceSupport db,
+      Access access,
+      AuditService audit,
+      PropertyService properties,
+      Clock clock,
+      MeterReadingRepository meterReadingRepository,
+      MaintenanceRepository maintenanceRepository,
+      UserRepository userRepository) {
+    this.meterReadingRepository = meterReadingRepository;
+    this.maintenanceRepository = maintenanceRepository;
+    this.userRepository = userRepository;
     this.db = db;
     this.access = access;
     this.audit = audit;
@@ -66,8 +79,8 @@ public class OperationsService {
     this.clock = clock;
   }
 
-  public List<? extends Row> list(String type, Long building) {
-    Class<? extends Row> entity = type(type);
+  public List<? extends BaseEntity> list(String type, Long building) {
+    Class<? extends BaseEntity> entity = type(type);
     readRole(type);
     var ids = properties.scope(building);
     if (ids.isEmpty()) return List.of();
@@ -93,7 +106,7 @@ public class OperationsService {
             "ids",
             ids);
     if (type.equals("preventive"))
-      for (Row row : rows) {
+      for (BaseEntity row : rows) {
         PreventiveTask p = (PreventiveTask) row;
         Building b = db.get(Building.class, p.buildingId);
         p.seasonalPriority =
@@ -104,14 +117,14 @@ public class OperationsService {
     return rows;
   }
 
-  public Row get(String type, Long id) {
+  public BaseEntity get(String type, Long id) {
     return list(type, null).stream()
         .filter(r -> r.id.equals(id))
         .findFirst()
         .orElseThrow(ApiException::missing);
   }
 
-  private Class<? extends Row> type(String type) {
+  private Class<? extends BaseEntity> type(String type) {
     var t = TYPES.get(type);
     if (t == null) throw ApiException.missing();
     return t;
@@ -126,17 +139,17 @@ public class OperationsService {
     else access.role("OWNER", "MANAGER");
   }
 
-  public Row save(String type, Long id, Input in) {
+  public BaseEntity save(String type, Long id, Input in) {
     type(type);
     Long b = in.id("buildingId");
     if (access.user().role.equals("GUARD") && Set.of("visits", "checkins").contains(type)) {
       access.building(b);
       if (id != null) throw ApiException.forbidden();
     } else access.manage(b);
-    Row row = id == null ? null : get(type, id);
+    BaseEntity row = id == null ? null : get(type, id);
     if (row != null && !Objects.equals(buildingOf(row), b))
       throw ApiException.invalid("INVALID_INPUT");
-    Row saved =
+    BaseEntity saved =
         switch (type) {
           case "safety" -> {
             SafetyRecord x = row == null ? new SafetyRecord() : (SafetyRecord) row;
@@ -260,7 +273,7 @@ public class OperationsService {
     return saved;
   }
 
-  private Long buildingOf(Row r) {
+  private Long buildingOf(BaseEntity r) {
     try {
       return (Long) r.getClass().getField("buildingId").get(r);
     } catch (ReflectiveOperationException e) {
@@ -301,11 +314,7 @@ public class OperationsService {
 
   public List<MeterReading> readings(Long id) {
     get("meters", id);
-    return db.list(
-        MeterReading.class,
-        "select r from MeterReading r where r.meterId=:id order by r.readingDate desc,r.id desc",
-        "id",
-        id);
+    return meterReadingRepository.findByMeterNewestFirst(id);
   }
 
   public MeterReading reading(Long id, Input in) {
@@ -337,14 +346,7 @@ public class OperationsService {
     List<Map<String, Object>> result = new ArrayList<>();
     for (var row : list("vendors", building)) {
       VendorProfile v = (VendorProfile) row;
-      var jobs =
-          db.list(
-              Maintenance.class,
-              "select m from Maintenance m where m.assignedTo=:u and m.buildingId=:b",
-              "u",
-              v.userId,
-              "b",
-              v.buildingId);
+      var jobs = maintenanceRepository.findAssignedInBuilding(v.userId, v.buildingId);
       long complete = jobs.stream().filter(m -> m.resolvedAt != null).count();
       double hours =
           jobs.stream()
@@ -370,14 +372,6 @@ public class OperationsService {
   public List<UserAccount> assignees(Long building) {
     access.staffRead(building);
     Building b = db.get(Building.class, building);
-    return db.list(
-        UserAccount.class,
-        "select distinct u from UserAccount u where u.active=true and (u.id=:owner or u.id in"
-            + " (select a.userId from BuildingAccess a where a.buildingId=:b and a.canWrite=true)"
-            + " or u.id in (select v.userId from VendorProfile v where v.buildingId=:b))",
-        "owner",
-        b.ownerId,
-        "b",
-        building);
+    return userRepository.findEligibleMaintenanceAssignees(b.ownerId, building);
   }
 }

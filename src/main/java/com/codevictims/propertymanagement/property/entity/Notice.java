@@ -1,13 +1,12 @@
 package com.codevictims.propertymanagement.property.entity;
 
-import com.codevictims.propertymanagement.common.entity.Row;
-
+import com.codevictims.propertymanagement.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.time.*;
 
 @Entity
 @Table(name = "notice")
-public class Notice extends Row {
+public class Notice extends BaseEntity {
   @Column(nullable = false)
   public Long buildingId;
 

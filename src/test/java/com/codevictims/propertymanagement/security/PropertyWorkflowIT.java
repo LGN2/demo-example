@@ -1,8 +1,9 @@
 package com.codevictims.propertymanagement.security;
-import com.codevictims.propertymanagement.tenancy.service.TenancyService;
-import com.codevictims.propertymanagement.billing.service.TaxPolicyService;
-import com.codevictims.propertymanagement.common.service.AuditHistoryService;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.codevictims.propertymanagement.account.entity.UserAccount;
 import com.codevictims.propertymanagement.account.repository.UserRepository;
@@ -11,11 +12,13 @@ import com.codevictims.propertymanagement.billing.entity.Cheque;
 import com.codevictims.propertymanagement.billing.entity.Payment;
 import com.codevictims.propertymanagement.billing.entity.TaxPolicy;
 import com.codevictims.propertymanagement.billing.service.FinanceService;
+import com.codevictims.propertymanagement.billing.service.TaxPolicyService;
 import com.codevictims.propertymanagement.common.config.DevelopmentSeed;
 import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.entity.Document;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-import com.codevictims.propertymanagement.common.repository.Store;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
+import com.codevictims.propertymanagement.common.service.AuditHistoryService;
 import com.codevictims.propertymanagement.common.service.FileVault;
 import com.codevictims.propertymanagement.dashboard.service.ReportService;
 import com.codevictims.propertymanagement.maintenance.entity.Maintenance;
@@ -31,12 +34,7 @@ import com.codevictims.propertymanagement.property.service.OperationsService;
 import com.codevictims.propertymanagement.property.service.PropertyService;
 import com.codevictims.propertymanagement.tenancy.entity.Lease;
 import com.codevictims.propertymanagement.tenancy.entity.Tenant;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
+import com.codevictims.propertymanagement.tenancy.service.TenancyService;
 import java.math.*;
 import java.time.*;
 import java.util.*;
@@ -54,19 +52,15 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /** Runs against actual MySQL. No embedded database, docker detection, or silent skip. */
-@SpringBootTest(
-    properties = {
-      "server.servlet.session.cookie.secure=false",
-      "app.allow-unscanned-uploads=true",
-      "app.storage=target/test-vault"
-    })
+@SpringBootTest
+@org.springframework.test.context.ActiveProfiles("test")
 @AutoConfigureMockMvc
 class PropertyWorkflowIT {
   @Autowired private TenancyService tenancyService;
   @Autowired private TaxPolicyService taxPolicyService;
   @Autowired private AuditHistoryService auditHistoryService;
 
-  @Autowired Store db;
+  @Autowired PersistenceSupport db;
   @Autowired UserRepository users;
   @Autowired PropertyService properties;
   @Autowired FinanceService finance;
@@ -651,6 +645,7 @@ class PropertyWorkflowIT {
     assertTrue(done.nextDue.isAfter(today));
     assertThrows(ApiException.class, () -> operations.complete(p.id));
   }
+
   @Test
   void concurrentLeaseCreationCannotOverlap() throws Exception {
     var pool = Executors.newFixedThreadPool(2);
@@ -658,19 +653,22 @@ class PropertyWorkflowIT {
     try {
       List<Future<Boolean>> attempts = new ArrayList<>();
       for (int i = 0; i < 2; i++) {
-        attempts.add(pool.submit(() -> {
-          login(owner);
-          try {
-            start.await();
-            tenancyService.lease(leaseInput(unit.id, tenant.id, lease.endDate.plusDays(1)), lease.id);
-            return true;
-          } catch (ApiException e) {
-            assertEquals("LEASE_OVERLAP", e.code);
-            return false;
-          } finally {
-            SecurityContextHolder.clearContext();
-          }
-        }));
+        attempts.add(
+            pool.submit(
+                () -> {
+                  login(owner);
+                  try {
+                    start.await();
+                    tenancyService.lease(
+                        leaseInput(unit.id, tenant.id, lease.endDate.plusDays(1)), lease.id);
+                    return true;
+                  } catch (ApiException e) {
+                    assertEquals("LEASE_OVERLAP", e.code);
+                    return false;
+                  } finally {
+                    SecurityContextHolder.clearContext();
+                  }
+                }));
       }
       start.countDown();
       int created = 0;
@@ -680,11 +678,59 @@ class PropertyWorkflowIT {
       pool.shutdownNow();
     }
   }
+
   @Test
   void tenantHistoryDoesNotExposeInternalFollowUpNotes() {
     finance.followUp(lease.id, in("note", "Internal collection discussion"));
     login(tenantUser);
-    assertTrue(auditHistoryService.history("LEASE", lease.id).stream().noneMatch(e -> e.action.equals("FOLLOW_UP")));
+    assertTrue(
+        auditHistoryService.history("LEASE", lease.id).stream()
+            .noneMatch(e -> e.action.equals("FOLLOW_UP")));
     assertThrows(ApiException.class, () -> finance.followUps(lease.id));
+  }
+
+  @Test
+  void requestDtosRejectInvalidInputAndIgnoreOwnershipInjection() throws Exception {
+    mvc.perform(
+            post("/api/buildings")
+                .with(user(owner.username))
+                .with(csrf())
+                .contentType("application/json")
+                .content("{\"name\":\"\",\"wilayat\":\"Muscat\",\"address\":\"Test\"}"))
+        .andExpect(status().isBadRequest());
+    mvc.perform(
+            post("/api/buildings")
+                .with(user(owner.username))
+                .with(csrf())
+                .contentType("application/json")
+                .content(
+                    "{\"name\":\"DTO"
+                        + " test\",\"wilayat\":\"Muscat\",\"address\":\"Test\",\"ownerId\":"
+                        + owner2.id
+                        + "}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.ownerId").value(owner.id));
+    mvc.perform(get("/api/users").with(user(owner.username)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[*].passwordHash").isEmpty());
+  }
+
+  @Test
+  void multipartDtoBindsDatesAndHidesStorageKeys() throws Exception {
+    mvc.perform(
+            multipart("/api/documents")
+                .file(
+                    new MockMultipartFile(
+                        "file", "note.pdf", "application/pdf", "%PDF-1.7 synthetic note".getBytes()))
+                .param("buildingId", building.id.toString())
+                .param("unitId", unit.id.toString())
+                .param("tenantId", tenant.id.toString())
+                .param("kind", "OTHER")
+                .param("expiryDate", today.plusDays(10).toString())
+                .with(user(owner.username))
+                .with(csrf()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.expiryDate").value(today.plusDays(10).toString()))
+        .andExpect(jsonPath("$.storageKey").doesNotExist());
   }
 }

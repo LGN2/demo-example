@@ -2,7 +2,6 @@ package com.codevictims.propertymanagement.common.config;
 
 import com.codevictims.propertymanagement.account.entity.UserAccount;
 import com.codevictims.propertymanagement.account.repository.UserRepository;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.*;
 import org.springframework.context.annotation.Profile;

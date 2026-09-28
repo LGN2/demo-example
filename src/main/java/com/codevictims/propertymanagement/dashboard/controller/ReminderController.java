@@ -1,7 +1,6 @@
 package com.codevictims.propertymanagement.dashboard.controller;
 
 import com.codevictims.propertymanagement.dashboard.service.ReminderService;
-
 import org.springframework.web.bind.annotation.*;
 
 @RestController

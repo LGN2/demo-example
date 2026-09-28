@@ -49,7 +49,7 @@ The main demo has one current OMR 300.000 monthly lease, a settled OMR 100.000 p
 
 ## Run without Docker
 
-Install **JDK 17** and **MySQL 8.4**. Set `JAVA_HOME` to the JDK directory and confirm `java -version`. Maven is downloaded by the included wrapper; a separate Maven installation is optional.
+Install **JDK 21 (or 17)** and **MySQL 8.4**. Set `JAVA_HOME` to the JDK directory and confirm `java -version`. Maven is downloaded by the included wrapper; a separate Maven installation is optional.
 
 As a MySQL administrator, run the following once, replacing the password before execution:
 
@@ -127,14 +127,33 @@ Browser tests record a synthetic OMR 10.000 payment. Recreate a fresh demo befor
 
 Payments, automated WhatsApp, property portals, locks/intercoms, CCTV status, chillers, lifts, tank/pump sensors and energy monitoring require selected providers, official documentation and sandbox/hardware access. Their status screen says disabled; no invented adapters or live side effects are included. [Activation requirements](docs/INTEGRATIONS.md) list the remaining work.
 
-Before a real deployment, configure HTTPS, production accounts/secrets, file scanning, backups and confirmed tax/contract rules. Use [security and operations guidance](docs/SECURITY_AND_OPERATIONS.md). Generated records do not certify legal compliance or municipal registration. This implementation is intended for a development team to review and validate for its operating context.
+Before a real deployment, configure HTTPS, production accounts/secrets, file scanning, backups and confirmed tax/contract rules. Use [security and operations guidance](docs/permissions.md). Generated records do not certify legal compliance or municipal registration. This implementation is intended for a development team to review and validate for its operating context.
 
 ## Project documentation
 
-- [Architecture, database diagrams and scope decisions](docs/ARCHITECTURE.md)
-- [API reference](docs/API.md) and [Postman collection](docs/Bayt.postman_collection.json)
+- [Architecture, database diagrams and scope decisions](docs/database.md)
+- [API reference](docs/api.md) and [Postman collection](docs/postman/property-management.postman_collection.json)
 - [Financial metric definitions](docs/METRICS.md)
-- [Acceptance checklist](docs/ACCEPTANCE.md) and [eight-minute demonstration](docs/DEMO.md)
+- [Acceptance checklist](docs/acceptance-checklist.md) and [eight-minute demonstration](docs/demo-script.md)
 - [ClickUp-compatible backlog](docs/clickup-backlog.csv)
 - [Requirements matrix](docs/REQUIREMENTS.md), [test evidence and progress](docs/PROGRESS.md)
 - [Original attached build specification](docs/BUILD_SPECIFICATION.txt)
+
+## IntelliJ IDEA and Java 21
+
+Open the root `pom.xml` as a Maven project. Set **Project SDK** and **Maven Runner JRE** to JDK 21, then reload all Maven projects. The POM explicitly compiles with release 17, which JDK 21 supports. If IntelliJ still reports JVM target 5, remove that stale override in Settings → Build, Execution, Deployment → Compiler → Java Compiler and reload Maven; use target 17. Do not change it to 5.
+
+Run `com.codevictims.propertymanagement.PropertyManagementApplication` with the database environment variables and `dev` profile described above. The packaged artifact is `target/property-management-1.0.0-SNAPSHOT.jar`.
+
+To update an existing checkout:
+
+```sh
+git switch feat/oman-property-management
+git pull --ff-only origin feat/oman-property-management
+```
+
+The project follows feature packages under `com/codevictims/propertymanagement`: `account`, `security`, `property`, `tenancy`, `billing`, `maintenance`, `dashboard`, and `common`. See [the structure and database guide](docs/database.md).
+
+Additional guides: [maintenance AI](docs/maintenance-ai.md), [UI](docs/ui-guide.md), [responsive checks](docs/responsive-checklist.md), [test results](docs/test-results.md), and [Postman environment](docs/postman/local.postman_environment.json).
+
+Suggested ownership follows the supplied team layout: Almajd—Maven, API and demo; Mohammed—database; Reem—Docker, CI, permissions and acceptance; Nawaf—maintenance AI; SHATHA—UI and responsive checks. These are handover responsibilities, not claims of authorship.

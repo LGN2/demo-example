@@ -1,24 +1,15 @@
 package com.codevictims.propertymanagement.billing.service;
 
-import com.codevictims.propertymanagement.account.entity.UserAccount;
-import com.codevictims.propertymanagement.billing.entity.Allocation;
-import com.codevictims.propertymanagement.billing.entity.Due;
-import com.codevictims.propertymanagement.billing.entity.Payment;
 import com.codevictims.propertymanagement.billing.entity.TaxPolicy;
+import com.codevictims.propertymanagement.billing.repository.TaxPolicyRepository;
 import com.codevictims.propertymanagement.common.dto.Input;
-import com.codevictims.propertymanagement.common.entity.AuditEvent;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-import com.codevictims.propertymanagement.common.repository.Store;
-import com.codevictims.propertymanagement.common.service.Audit;
-import com.codevictims.propertymanagement.maintenance.entity.Maintenance;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
+import com.codevictims.propertymanagement.common.service.AuditService;
 import com.codevictims.propertymanagement.property.entity.Building;
-import com.codevictims.propertymanagement.property.entity.Unit;
 import com.codevictims.propertymanagement.property.repository.UnitRepository;
-import com.codevictims.propertymanagement.security.service.Access;
-import com.codevictims.propertymanagement.tenancy.entity.Lease;
-import com.codevictims.propertymanagement.tenancy.entity.Tenant;
-
 import com.codevictims.propertymanagement.property.service.PropertyService;
+import com.codevictims.propertymanagement.security.service.Access;
 import java.math.*;
 import java.time.*;
 import java.util.*;
@@ -28,14 +19,23 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
 public class TaxPolicyService {
-  private final Store db;
+  private final TaxPolicyRepository taxPolicyRepository;
+  private final PersistenceSupport db;
   private final Access access;
-  private final Audit audit;
+  private final AuditService audit;
   private final UnitRepository units;
   private final Clock clock;
   private final PropertyService properties;
 
-  public TaxPolicyService(Store db, Access access, Audit audit, UnitRepository units, Clock clock, PropertyService properties) {
+  public TaxPolicyService(
+      PersistenceSupport db,
+      Access access,
+      AuditService audit,
+      UnitRepository units,
+      Clock clock,
+      PropertyService properties,
+      TaxPolicyRepository taxPolicyRepository) {
+    this.taxPolicyRepository = taxPolicyRepository;
     this.db = db;
     this.access = access;
     this.audit = audit;
@@ -47,13 +47,7 @@ public class TaxPolicyService {
   public List<TaxPolicy> taxes(Long building) {
     access.role("OWNER", "MANAGER");
     var ids = properties.scope(building);
-    return ids.isEmpty()
-        ? List.of()
-        : db.list(
-            TaxPolicy.class,
-            "select p from TaxPolicy p where p.buildingId in :ids order by p.effectiveFrom",
-            "ids",
-            ids);
+    return ids.isEmpty() ? List.of() : taxPolicyRepository.findInBuildingsByEffectiveDate(ids);
   }
 
   public TaxPolicy tax(Input in) {
@@ -82,5 +76,4 @@ public class TaxPolicyService {
     audit.add(bid, "TAX_POLICY", p.id, "CREATED", p.treatment);
     return p;
   }
-
 }

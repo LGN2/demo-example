@@ -5,13 +5,12 @@ import com.codevictims.propertymanagement.billing.entity.DepositEntry;
 import com.codevictims.propertymanagement.billing.entity.Due;
 import com.codevictims.propertymanagement.billing.entity.Payment;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-import com.codevictims.propertymanagement.common.repository.Store;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
 import com.codevictims.propertymanagement.property.entity.Building;
 import com.codevictims.propertymanagement.property.entity.Unit;
 import com.codevictims.propertymanagement.security.service.Access;
 import com.codevictims.propertymanagement.tenancy.entity.Lease;
 import com.codevictims.propertymanagement.tenancy.entity.Tenant;
-
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -20,12 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 public class DocumentRenderer {
-  private final Store db;
+  private final PersistenceSupport db;
   private final Access access;
   private final FinanceService finance;
   private final Clock clock;
 
-  public DocumentRenderer(Store db, Access access, FinanceService finance, Clock clock) {
+  public DocumentRenderer(
+      PersistenceSupport db, Access access, FinanceService finance, Clock clock) {
     this.db = db;
     this.access = access;
     this.finance = finance;
@@ -46,9 +46,9 @@ public class DocumentRenderer {
           "<p class=warning>"
               + (ar
                   ? "مسودة للمراجعة. ليست عقداً موقعاً أو إثبات تسجيل بلدي. يجب مراجعة الشروط"
-                        + " القانونية قبل التوقيع."
+                      + " القانونية قبل التوقيع."
                   : "Draft for review. This is not a signed agreement or proof of municipality"
-                        + " registration. Obtain appropriate legal review before signing.")
+                      + " registration. Obtain appropriate legal review before signing.")
               + "</p>"
               + table(
                   List.of(
@@ -74,10 +74,10 @@ public class DocumentRenderer {
               + "<p>"
               + (ar
                   ? "إيجار شهري ثابت. تُسجل دفعات الإيجار والتأمين بشكل منفصل. الشروط الإضافية"
-                        + " والتوقيعات تُستكمل بعد المراجعة."
+                      + " والتوقيعات تُستكمل بعد المراجعة."
                   : "Fixed monthly rent. Rent and security-deposit payments are recorded"
-                        + " separately. Additional terms and signatures must be completed after"
-                        + " review.")
+                      + " separately. Additional terms and signatures must be completed after"
+                      + " review.")
               + "</p><p>"
               + (ar
                   ? "توقيع المالك: __________ توقيع المستأجر: __________"

@@ -1,13 +1,11 @@
 package com.codevictims.propertymanagement.common.controller;
-import com.codevictims.propertymanagement.common.mapper.RequestMapper;
-import com.codevictims.propertymanagement.common.mapper.DocumentMapper;
-import com.codevictims.propertymanagement.common.dto.response.DocumentResponse;
-import com.codevictims.propertymanagement.common.dto.request.DocumentUploadRequest;
 
-import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.dto.PageSlice;
+import com.codevictims.propertymanagement.common.dto.request.DocumentUploadRequest;
+import com.codevictims.propertymanagement.common.dto.response.DocumentResponse;
+import com.codevictims.propertymanagement.common.mapper.DocumentMapper;
+import com.codevictims.propertymanagement.common.mapper.RequestMapper;
 import com.codevictims.propertymanagement.common.service.FileVault;
-
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import org.springframework.core.io.Resource;
@@ -30,11 +28,14 @@ public class FileController {
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size,
       @RequestParam(defaultValue = "") String q) {
-    return PageSlice.of(vault.list(buildingId), page, size, q, d -> d.filename + " " + d.kind).map(DocumentMapper::toResponse);
+    return PageSlice.of(vault.list(buildingId), page, size, q, d -> d.filename + " " + d.kind)
+        .map(DocumentMapper::toResponse);
   }
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  DocumentResponse upload(@jakarta.validation.Valid @ModelAttribute DocumentUploadRequest fields, @RequestParam("file") MultipartFile file)
+  DocumentResponse upload(
+      @jakarta.validation.Valid @ModelAttribute DocumentUploadRequest fields,
+      @RequestParam("file") MultipartFile file)
       throws java.io.IOException {
     return DocumentMapper.toResponse(vault.upload(RequestMapper.toInput(fields), file));
   }

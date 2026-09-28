@@ -3,7 +3,6 @@ package com.codevictims.propertymanagement.common.controller;
 import com.codevictims.propertymanagement.common.integration.ExternalIntegration;
 import com.codevictims.propertymanagement.maintenance.service.AiAssistant;
 import com.codevictims.propertymanagement.security.service.Access;
-
 import java.util.*;
 import org.springframework.web.bind.annotation.*;
 

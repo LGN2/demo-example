@@ -1,6 +1,7 @@
 package com.codevictims.propertymanagement.common.dto.response;
-import java.math.BigDecimal;
+
 import java.time.*;
+
 public record DocumentResponse(
     Long id,
     long version,

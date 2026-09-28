@@ -1,13 +1,12 @@
 package com.codevictims.propertymanagement.property.entity;
 
-import com.codevictims.propertymanagement.common.entity.Row;
-
+import com.codevictims.propertymanagement.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.time.*;
 
 @Entity
 @Table(name = "visit")
-public class Visit extends Row {
+public class Visit extends BaseEntity {
   @Column(nullable = false)
   public Long buildingId;
 

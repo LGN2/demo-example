@@ -1,7 +1,5 @@
 package com.codevictims.propertymanagement.maintenance.service;
 
-
-
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

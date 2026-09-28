@@ -1,5 +1,6 @@
 package com.codevictims.propertymanagement.billing.service;
 
+import com.codevictims.propertymanagement.billing.dto.response.DueBalanceResponse;
 import com.codevictims.propertymanagement.billing.entity.Allocation;
 import com.codevictims.propertymanagement.billing.entity.Cheque;
 import com.codevictims.propertymanagement.billing.entity.DepositEntry;
@@ -7,14 +8,20 @@ import com.codevictims.propertymanagement.billing.entity.Due;
 import com.codevictims.propertymanagement.billing.entity.Expense;
 import com.codevictims.propertymanagement.billing.entity.FollowUp;
 import com.codevictims.propertymanagement.billing.entity.Payment;
+import com.codevictims.propertymanagement.billing.repository.AllocationRepository;
+import com.codevictims.propertymanagement.billing.repository.ChequeRepository;
+import com.codevictims.propertymanagement.billing.repository.DepositEntryRepository;
+import com.codevictims.propertymanagement.billing.repository.DueRepository;
+import com.codevictims.propertymanagement.billing.repository.ExpenseRepository;
+import com.codevictims.propertymanagement.billing.repository.FollowUpRepository;
+import com.codevictims.propertymanagement.billing.repository.PaymentRepository;
 import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-import com.codevictims.propertymanagement.common.repository.Store;
-import com.codevictims.propertymanagement.common.service.Audit;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
+import com.codevictims.propertymanagement.common.service.AuditService;
 import com.codevictims.propertymanagement.property.entity.Unit;
 import com.codevictims.propertymanagement.security.service.Access;
 import com.codevictims.propertymanagement.tenancy.entity.Lease;
-
 import java.math.*;
 import java.time.*;
 import java.util.*;
@@ -24,59 +31,59 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
 public class FinanceService {
-  private final Store db;
+  private final DueRepository dueRepository;
+  private final AllocationRepository allocationRepository;
+  private final PaymentRepository paymentRepository;
+  private final ChequeRepository chequeRepository;
+  private final DepositEntryRepository depositEntryRepository;
+  private final FollowUpRepository followUpRepository;
+  private final ExpenseRepository expenseRepository;
+  private final PersistenceSupport db;
   private final Access access;
-  private final Audit audit;
+  private final AuditService audit;
   private final Clock clock;
 
-  public FinanceService(Store db, Access access, Audit audit, Clock clock) {
+  public FinanceService(
+      PersistenceSupport db,
+      Access access,
+      AuditService audit,
+      Clock clock,
+      DueRepository dueRepository,
+      AllocationRepository allocationRepository,
+      PaymentRepository paymentRepository,
+      ChequeRepository chequeRepository,
+      DepositEntryRepository depositEntryRepository,
+      FollowUpRepository followUpRepository,
+      ExpenseRepository expenseRepository) {
+    this.dueRepository = dueRepository;
+    this.allocationRepository = allocationRepository;
+    this.paymentRepository = paymentRepository;
+    this.chequeRepository = chequeRepository;
+    this.depositEntryRepository = depositEntryRepository;
+    this.followUpRepository = followUpRepository;
+    this.expenseRepository = expenseRepository;
     this.db = db;
     this.access = access;
     this.audit = audit;
     this.clock = clock;
   }
 
-  public record DueView(
-      Long id,
-      Long leaseId,
-      LocalDate dueDate,
-      BigDecimal rentAmount,
-      BigDecimal taxAmount,
-      BigDecimal amount,
-      BigDecimal paid,
-      BigDecimal outstanding,
-      boolean cancelled,
-      long daysLate) {}
-
-  public List<DueView> dues(Long leaseId, LocalDate asOf) {
+  public List<DueBalanceResponse> dues(Long leaseId, LocalDate asOf) {
     access.lease(leaseId, false);
     return dueRows(leaseId).stream().map(d -> view(d, asOf)).toList();
   }
 
   public List<Due> dueRows(Long leaseId) {
-    return db.list(
-        Due.class,
-        "select d from Due d where d.leaseId=:id order by d.dueDate,d.id",
-        "id",
-        leaseId);
+    return dueRepository.findByLeaseInAllocationOrder(leaseId);
   }
 
   public BigDecimal paid(Due due, LocalDate asOf) {
-    return db
-        .list(
-            Allocation.class,
-            "select a from Allocation a,Payment p where a.paymentId=p.id and a.dueId=:id and"
-                + " p.effectiveDate<=:day and (p.reversedOn is null or p.reversedOn>:day)",
-            "id",
-            due.id,
-            "day",
-            asOf)
-        .stream()
+    return allocationRepository.findEffectiveForDue(due.id, asOf).stream()
         .map(a -> a.amount)
         .reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 
-  public DueView view(Due d, LocalDate asOf) {
+  public DueBalanceResponse view(Due d, LocalDate asOf) {
     boolean cancelled = d.cancelled && (d.cancelledOn == null || !d.cancelledOn.isAfter(asOf));
     BigDecimal paid = paid(d, asOf),
         outstanding = cancelled ? BigDecimal.ZERO : d.amount.subtract(paid);
@@ -84,7 +91,7 @@ public class FinanceService {
         outstanding.signum() > 0 && d.dueDate.isBefore(asOf)
             ? java.time.temporal.ChronoUnit.DAYS.between(d.dueDate, asOf)
             : 0;
-    return new DueView(
+    return new DueBalanceResponse(
         d.id,
         d.leaseId,
         d.dueDate,
@@ -99,11 +106,7 @@ public class FinanceService {
 
   public List<Payment> payments(Long leaseId) {
     access.lease(leaseId, false);
-    return db.list(
-        Payment.class,
-        "select p from Payment p where p.leaseId=:id order by p.effectiveDate desc,p.id desc",
-        "id",
-        leaseId);
+    return paymentRepository.findByLeaseOrderByEffectiveDate(leaseId);
   }
 
   public Payment payment(Long leaseId, Input in) {
@@ -121,14 +124,7 @@ public class FinanceService {
   private Payment settle(
       Lease l, BigDecimal amount, String method, String reference, LocalDate date, String key) {
     if (date.isAfter(LocalDate.now(clock))) throw ApiException.invalid("FUTURE_SETTLEMENT");
-    var previous =
-        db.list(
-            Payment.class,
-            "select p from Payment p where p.leaseId=:id and p.idempotencyKey=:key",
-            "id",
-            l.id,
-            "key",
-            key);
+    var previous = paymentRepository.findByLeaseAndIdempotencyKey(l.id, key);
     if (!previous.isEmpty()) {
       Payment p = previous.get(0);
       if (p.amount.compareTo(amount) != 0
@@ -196,11 +192,7 @@ public class FinanceService {
 
   public List<Cheque> cheques(Long leaseId) {
     access.lease(leaseId, false);
-    return db.list(
-        Cheque.class,
-        "select c from Cheque c where c.leaseId=:id order by c.chequeDate",
-        "id",
-        leaseId);
+    return chequeRepository.findByLeaseOrderByChequeDate(leaseId);
   }
 
   public Cheque cheque(Long leaseId, Input in) {
@@ -244,11 +236,7 @@ public class FinanceService {
 
   public List<DepositEntry> deposits(Long leaseId) {
     access.lease(leaseId, false);
-    return db.list(
-        DepositEntry.class,
-        "select d from DepositEntry d where d.leaseId=:id order by d.id",
-        "id",
-        leaseId);
+    return depositEntryRepository.findByLeaseInLedgerOrder(leaseId);
   }
 
   public BigDecimal depositEffect(DepositEntry e) {
@@ -326,11 +314,7 @@ public class FinanceService {
   public List<FollowUp> followUps(Long leaseId) {
     Lease l = access.lease(leaseId, false);
     access.staffRead(l.buildingId);
-    return db.list(
-        FollowUp.class,
-        "select f from FollowUp f where f.leaseId=:id order by f.createdAt desc",
-        "id",
-        leaseId);
+    return followUpRepository.findByLeaseNewestFirst(leaseId);
   }
 
   public Expense expense(Input in) {
@@ -367,12 +351,6 @@ public class FinanceService {
   public List<Expense> expenses(List<Long> ids) {
     access.role("OWNER", "MANAGER");
     for (Long id : ids) access.staffRead(id);
-    return ids.isEmpty()
-        ? List.of()
-        : db.list(
-            Expense.class,
-            "select e from Expense e where e.buildingId in :ids order by e.expenseDate desc",
-            "ids",
-            ids);
+    return ids.isEmpty() ? List.of() : expenseRepository.findInBuildingsNewestFirst(ids);
   }
 }

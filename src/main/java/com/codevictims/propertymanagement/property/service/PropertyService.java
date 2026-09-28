@@ -1,23 +1,14 @@
 package com.codevictims.propertymanagement.property.service;
 
-import com.codevictims.propertymanagement.account.entity.UserAccount;
-import com.codevictims.propertymanagement.billing.entity.Allocation;
-import com.codevictims.propertymanagement.billing.entity.Due;
-import com.codevictims.propertymanagement.billing.entity.Payment;
-import com.codevictims.propertymanagement.billing.entity.TaxPolicy;
 import com.codevictims.propertymanagement.common.dto.Input;
-import com.codevictims.propertymanagement.common.entity.AuditEvent;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-import com.codevictims.propertymanagement.common.repository.Store;
-import com.codevictims.propertymanagement.common.service.Audit;
-import com.codevictims.propertymanagement.maintenance.entity.Maintenance;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
+import com.codevictims.propertymanagement.common.service.AuditService;
 import com.codevictims.propertymanagement.property.entity.Building;
 import com.codevictims.propertymanagement.property.entity.Unit;
+import com.codevictims.propertymanagement.property.repository.BuildingRepository;
 import com.codevictims.propertymanagement.property.repository.UnitRepository;
 import com.codevictims.propertymanagement.security.service.Access;
-import com.codevictims.propertymanagement.tenancy.entity.Lease;
-import com.codevictims.propertymanagement.tenancy.entity.Tenant;
-
 import java.math.*;
 import java.time.*;
 import java.util.*;
@@ -27,13 +18,24 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
 public class PropertyService {
-  private final Store db;
+  private final BuildingRepository buildingRepository;
+  private final UnitRepository unitRepository;
+  private final PersistenceSupport db;
   private final Access access;
-  private final Audit audit;
+  private final AuditService audit;
   private final UnitRepository units;
   private final Clock clock;
 
-  public PropertyService(Store db, Access access, Audit audit, UnitRepository units, Clock clock) {
+  public PropertyService(
+      PersistenceSupport db,
+      Access access,
+      AuditService audit,
+      UnitRepository units,
+      Clock clock,
+      BuildingRepository buildingRepository,
+      UnitRepository unitRepository) {
+    this.buildingRepository = buildingRepository;
+    this.unitRepository = unitRepository;
     this.db = db;
     this.access = access;
     this.audit = audit;
@@ -43,13 +45,7 @@ public class PropertyService {
 
   public List<Building> buildings() {
     var ids = access.buildings();
-    return ids.isEmpty()
-        ? List.of()
-        : db.list(
-            Building.class,
-            "select b from Building b where b.id in :ids order by b.id",
-            "ids",
-            ids);
+    return ids.isEmpty() ? List.of() : buildingRepository.findAccessibleBuildings(ids);
   }
 
   public Building building(Input in, Long id) {
@@ -75,25 +71,10 @@ public class PropertyService {
     var ids = scope(building);
     if (ids.isEmpty()) return List.of();
     if (access.user().role.equals("TENANT"))
-      return db.list(
-          Unit.class,
-          "select distinct u from Unit u, Lease l, Tenant t where u.id=l.unitId and l.tenantId=t.id"
-              + " and t.accountId=:user and u.buildingId in :ids order by u.id",
-          "user",
-          access.user().id,
-          "ids",
-          ids);
+      return unitRepository.findAccessibleToTenant(access.user().id, ids);
     if (access.user().role.equals("VENDOR"))
-      return db.list(
-          Unit.class,
-          "select distinct u from Unit u, Maintenance m where m.unitId=u.id and m.assignedTo=:user"
-              + " and u.buildingId in :ids order by u.id",
-          "user",
-          access.user().id,
-          "ids",
-          ids);
-    return db.list(
-        Unit.class, "select u from Unit u where u.buildingId in :ids order by u.id", "ids", ids);
+      return unitRepository.findAccessibleToVendor(access.user().id, ids);
+    return unitRepository.findInBuildings(ids);
   }
 
   public List<Long> scope(Long building) {
@@ -123,5 +104,4 @@ public class PropertyService {
     audit.add(bid, "UNIT", u.id, id == null ? "CREATED" : "UPDATED", "");
     return u;
   }
-
 }

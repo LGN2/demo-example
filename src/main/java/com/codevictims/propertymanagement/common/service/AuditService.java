@@ -1,17 +1,16 @@
 package com.codevictims.propertymanagement.common.service;
 
 import com.codevictims.propertymanagement.common.entity.AuditEvent;
-import com.codevictims.propertymanagement.common.repository.Store;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
 import com.codevictims.propertymanagement.security.service.Access;
-
 import org.springframework.stereotype.Service;
 
 @Service
-public class Audit {
-  private final Store db;
+public class AuditService {
+  private final PersistenceSupport db;
   private final Access access;
 
-  public Audit(Store db, Access access) {
+  public AuditService(PersistenceSupport db, Access access) {
     this.db = db;
     this.access = access;
   }

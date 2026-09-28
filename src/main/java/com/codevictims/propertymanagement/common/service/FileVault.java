@@ -3,13 +3,14 @@ package com.codevictims.propertymanagement.common.service;
 import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.entity.Document;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-import com.codevictims.propertymanagement.common.repository.Store;
+import com.codevictims.propertymanagement.common.repository.DocumentRepository;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
 import com.codevictims.propertymanagement.maintenance.entity.Maintenance;
 import com.codevictims.propertymanagement.property.entity.Meter;
 import com.codevictims.propertymanagement.property.entity.MeterReading;
 import com.codevictims.propertymanagement.security.service.Access;
 import com.codevictims.propertymanagement.tenancy.entity.Tenant;
-
+import com.codevictims.propertymanagement.tenancy.repository.TenantRepository;
 import java.io.*;
 import java.nio.file.*;
 import java.time.*;
@@ -25,20 +26,26 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @Transactional
 public class FileVault {
-  private final Store db;
+  private final DocumentRepository documentRepository;
+  private final TenantRepository tenantRepository;
+  private final PersistenceSupport db;
   private final Access access;
-  private final Audit audit;
+  private final AuditService audit;
   private final Path root;
   private final String scanner;
   private final boolean dev;
 
   public FileVault(
-      Store db,
+      PersistenceSupport db,
       Access access,
-      Audit audit,
+      AuditService audit,
       @Value("${app.storage}") String root,
       @Value("${app.upload-scan-command:}") String scanner,
-      @Value("${app.allow-unscanned-uploads:false}") boolean dev) {
+      @Value("${app.allow-unscanned-uploads:false}") boolean dev,
+      DocumentRepository documentRepository,
+      TenantRepository tenantRepository) {
+    this.documentRepository = documentRepository;
+    this.tenantRepository = tenantRepository;
     this.db = db;
     this.access = access;
     this.audit = audit;
@@ -56,12 +63,7 @@ public class FileVault {
       ids = List.of(building);
     }
     if (ids.isEmpty()) return result;
-    for (var d :
-        db.list(
-            Document.class,
-            "select d from Document d where d.buildingId in :ids order by d.id desc",
-            "ids",
-            ids)) if (visible(d)) result.add(d);
+    for (var d : documentRepository.findInBuildingsNewestFirst(ids)) if (visible(d)) result.add(d);
     return result;
   }
 
@@ -148,14 +150,7 @@ public class FileVault {
       if (!Set.of("ID", "CR", "PHOTO").contains(d.kind)) throw ApiException.forbidden();
       if (d.maintenanceId == null && !Set.of("ID", "CR").contains(d.kind))
         throw ApiException.forbidden();
-      var tenants =
-          db.list(
-              Tenant.class,
-              "select t from Tenant t where t.accountId=:u and t.buildingId=:b",
-              "u",
-              access.user().id,
-              "b",
-              bid);
+      var tenants = tenantRepository.findByAccountAndBuilding(access.user().id, bid);
       if (tenants.isEmpty()) throw ApiException.forbidden();
       d.tenantId = tenants.get(0).id;
     }

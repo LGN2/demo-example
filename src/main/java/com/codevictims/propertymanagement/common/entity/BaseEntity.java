@@ -1,12 +1,10 @@
 package com.codevictims.propertymanagement.common.entity;
 
-
-
 import jakarta.persistence.*;
 import java.time.Instant;
 
 @MappedSuperclass
-public abstract class Row {
+public abstract class BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   public Long id;

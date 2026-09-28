@@ -1,12 +1,9 @@
 package com.codevictims.propertymanagement.common.controller;
-import com.codevictims.propertymanagement.common.mapper.AuditEventMapper;
-import com.codevictims.propertymanagement.common.dto.response.AuditEventResponse;
 
-import com.codevictims.propertymanagement.common.dto.Input;
-import com.codevictims.propertymanagement.common.dto.PageSlice;
+import com.codevictims.propertymanagement.common.dto.response.AuditEventResponse;
+import com.codevictims.propertymanagement.common.mapper.AuditEventMapper;
 import com.codevictims.propertymanagement.common.service.AuditHistoryService;
 import com.codevictims.propertymanagement.security.service.Access;
-
 import java.util.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,4 +21,5 @@ public class AuditHistoryController {
   @GetMapping("/history/{type}/{id}")
   public List<AuditEventResponse> history(@PathVariable String type, @PathVariable Long id) {
     return s.history(type, id).stream().map(AuditEventMapper::toResponse).toList();
-  }}
+  }
+}

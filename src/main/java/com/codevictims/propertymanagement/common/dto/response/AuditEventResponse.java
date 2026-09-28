@@ -1,6 +1,7 @@
 package com.codevictims.propertymanagement.common.dto.response;
-import java.math.BigDecimal;
+
 import java.time.*;
+
 public record AuditEventResponse(
     Long id,
     long version,

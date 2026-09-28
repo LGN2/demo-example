@@ -1,7 +1,6 @@
 package com.codevictims.propertymanagement.security.config;
 
 import com.codevictims.propertymanagement.account.repository.UserRepository;
-
 import org.springframework.context.annotation.*;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.userdetails.*;
@@ -36,9 +35,10 @@ public class SecurityConfig {
                         "/index.html",
                         "/css/**",
                         "/js/**",
-                        "/favicon.svg",
+                        "/assets/**",
+                        "/i18n/**",
                         "/api/auth/csrf",
-                      "/api/health",
+                        "/api/health",
                         "/error")
                     .permitAll()
                     .anyRequest()

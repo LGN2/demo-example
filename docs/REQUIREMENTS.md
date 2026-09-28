@@ -1,6 +1,6 @@
 # Requirements completion matrix
 
-Baseline: BUILD_SPECIFICATION.txt. Phase 1 = MVP, phase 2 = standalone expansion, phase 3 = external adapters. “Implemented” describes available code, not completion of every manual acceptance check. Automated evidence is recorded in PROGRESS.md; manual checks remain in ACCEPTANCE.md.
+Baseline: BUILD_SPECIFICATION.txt. Phase 1 = MVP, phase 2 = standalone expansion, phase 3 = external adapters. “Implemented” describes available code, not completion of every manual acceptance check. Automated evidence is recorded in PROGRESS.md; manual checks remain in acceptance-checklist.md.
 
 | Feature | Phase | Scope | Services and endpoints | Screens | Entities | Acceptance evidence or planned check | Actual status |
 |---|---|---|---|---|---|---|---|

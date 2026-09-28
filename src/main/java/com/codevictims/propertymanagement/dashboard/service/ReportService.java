@@ -1,20 +1,19 @@
 package com.codevictims.propertymanagement.dashboard.service;
-import com.codevictims.propertymanagement.tenancy.service.TenancyService;
 
-
-import com.codevictims.propertymanagement.billing.entity.Allocation;
+import com.codevictims.propertymanagement.billing.dto.response.DueBalanceResponse;
 import com.codevictims.propertymanagement.billing.entity.Cheque;
 import com.codevictims.propertymanagement.billing.entity.Due;
 import com.codevictims.propertymanagement.billing.entity.Expense;
 import com.codevictims.propertymanagement.billing.entity.Payment;
+import com.codevictims.propertymanagement.billing.repository.AllocationRepository;
 import com.codevictims.propertymanagement.billing.service.FinanceService;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-import com.codevictims.propertymanagement.common.repository.Store;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
 import com.codevictims.propertymanagement.maintenance.service.MaintenanceService;
 import com.codevictims.propertymanagement.property.entity.Building;
 import com.codevictims.propertymanagement.property.service.PropertyService;
 import com.codevictims.propertymanagement.security.service.Access;
-
+import com.codevictims.propertymanagement.tenancy.service.TenancyService;
 import java.math.*;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
@@ -25,19 +24,23 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 public class ReportService {
+  private final AllocationRepository allocationRepository;
   private final TenancyService tenancyService;
-  private final Store db;
+  private final PersistenceSupport db;
   private final Access access;
   private final PropertyService properties;
   private final FinanceService finance;
   private final MaintenanceService maintenance;
 
   public ReportService(
-      Store db,
+      PersistenceSupport db,
       Access access,
       PropertyService properties,
       FinanceService finance,
-      MaintenanceService maintenance, TenancyService tenancyService) {
+      MaintenanceService maintenance,
+      TenancyService tenancyService,
+      AllocationRepository allocationRepository) {
+    this.allocationRepository = allocationRepository;
     this.tenancyService = tenancyService;
     this.db = db;
     this.access = access;
@@ -65,7 +68,7 @@ public class ReportService {
     var unitIds = units.stream().map(u -> u.id).toList();
     var leases =
         tenancyService.leases(buildingId).stream().filter(l -> unitIds.contains(l.unitId)).toList();
-    List<FinanceService.DueView> dues = new ArrayList<>();
+    List<DueBalanceResponse> dues = new ArrayList<>();
     List<Payment> payments = new ArrayList<>();
     List<Cheque> cheques = new ArrayList<>();
     for (var l : leases) {
@@ -131,9 +134,7 @@ public class ReportService {
       if (p.reversedOn != null && inPeriod(p.reversedOn, from, to)) sign--;
       if (sign != 0) {
         collections = collections.add(p.amount.multiply(BigDecimal.valueOf(sign)));
-        for (var a :
-            db.list(
-                Allocation.class, "select a from Allocation a where a.paymentId=:p", "p", p.id)) {
+        for (var a : allocationRepository.findByPayment(p.id)) {
           Due d = db.get(Due.class, a.dueId);
           rentalCollections =
               rentalCollections.add(
@@ -296,7 +297,7 @@ public class ReportService {
             .append("\r\n");
     out.append("\r\ndue_id,lease_id,due_date,amount,paid,outstanding,days_late\r\n");
     @SuppressWarnings("unchecked")
-    var dues = (List<FinanceService.DueView>) report.get("dues");
+    var dues = (List<DueBalanceResponse>) report.get("dues");
     for (var d : dues)
       out.append(d.id())
           .append(',')

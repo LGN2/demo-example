@@ -1,15 +1,13 @@
 package com.codevictims.propertymanagement.common.config;
-import com.codevictims.propertymanagement.tenancy.service.TenancyService;
-import com.codevictims.propertymanagement.billing.service.TaxPolicyService;
-
 
 import com.codevictims.propertymanagement.account.entity.UserAccount;
 import com.codevictims.propertymanagement.account.repository.UserRepository;
 import com.codevictims.propertymanagement.account.service.AccountService;
 import com.codevictims.propertymanagement.billing.entity.TaxPolicy;
 import com.codevictims.propertymanagement.billing.service.FinanceService;
+import com.codevictims.propertymanagement.billing.service.TaxPolicyService;
 import com.codevictims.propertymanagement.common.dto.Input;
-import com.codevictims.propertymanagement.common.repository.Store;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
 import com.codevictims.propertymanagement.maintenance.entity.VendorProfile;
 import com.codevictims.propertymanagement.maintenance.service.MaintenanceService;
 import com.codevictims.propertymanagement.property.entity.Building;
@@ -18,7 +16,7 @@ import com.codevictims.propertymanagement.property.entity.Unit;
 import com.codevictims.propertymanagement.property.service.PropertyService;
 import com.codevictims.propertymanagement.tenancy.entity.Lease;
 import com.codevictims.propertymanagement.tenancy.entity.Tenant;
-
+import com.codevictims.propertymanagement.tenancy.service.TenancyService;
 import java.time.*;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,7 +35,7 @@ public class DevelopmentSeed implements ApplicationRunner {
   private final TaxPolicyService taxPolicyService;
   private final UserRepository users;
   private final PasswordEncoder passwords;
-  private final Store db;
+  private final PersistenceSupport db;
   private final PropertyService properties;
   private final AccountService accounts;
   private final FinanceService finance;
@@ -48,13 +46,15 @@ public class DevelopmentSeed implements ApplicationRunner {
   public DevelopmentSeed(
       UserRepository users,
       PasswordEncoder passwords,
-      Store db,
+      PersistenceSupport db,
       PropertyService properties,
       AccountService accounts,
       FinanceService finance,
       MaintenanceService maintenance,
       Clock clock,
-      @Value("${app.demo-password}") String password, TenancyService tenancyService, TaxPolicyService taxPolicyService) {
+      @Value("${app.demo-password}") String password,
+      TenancyService tenancyService,
+      TaxPolicyService taxPolicyService) {
 
     this.tenancyService = tenancyService;
     this.taxPolicyService = taxPolicyService;

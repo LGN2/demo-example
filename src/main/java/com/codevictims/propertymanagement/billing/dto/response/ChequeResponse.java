@@ -1,6 +1,8 @@
 package com.codevictims.propertymanagement.billing.dto.response;
+
 import java.math.BigDecimal;
 import java.time.*;
+
 public record ChequeResponse(
     Long id,
     long version,

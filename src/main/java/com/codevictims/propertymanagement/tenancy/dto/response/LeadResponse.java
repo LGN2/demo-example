@@ -1,6 +1,7 @@
 package com.codevictims.propertymanagement.tenancy.dto.response;
-import java.math.BigDecimal;
+
 import java.time.*;
+
 public record LeadResponse(
     Long id,
     long version,

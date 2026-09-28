@@ -1,14 +1,12 @@
 package com.codevictims.propertymanagement.common.entity;
 
-
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.*;
 
 @Entity
 @Table(name = "document")
-public class Document extends Row {
+public class Document extends BaseEntity {
   @Column(nullable = false)
   public Long buildingId;
 

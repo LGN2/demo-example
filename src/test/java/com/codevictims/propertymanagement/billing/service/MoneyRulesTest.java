@@ -1,7 +1,5 @@
 package com.codevictims.propertymanagement.billing.service;
 
-
-
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;

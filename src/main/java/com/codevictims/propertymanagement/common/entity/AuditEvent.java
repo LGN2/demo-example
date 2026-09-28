@@ -1,13 +1,11 @@
 package com.codevictims.propertymanagement.common.entity;
 
-
-
 import jakarta.persistence.*;
 import java.time.*;
 
 @Entity
 @Table(name = "audit_event")
-public class AuditEvent extends Row {
+public class AuditEvent extends BaseEntity {
   @Column(nullable = true)
   public Long buildingId;
 

@@ -1,7 +1,6 @@
 package com.codevictims.propertymanagement.common.dto;
 
 import com.codevictims.propertymanagement.common.exception.ApiException;
-
 import java.math.*;
 import java.time.*;
 import java.util.*;

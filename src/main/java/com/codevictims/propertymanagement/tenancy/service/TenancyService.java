@@ -1,24 +1,23 @@
 package com.codevictims.propertymanagement.tenancy.service;
 
 import com.codevictims.propertymanagement.account.entity.UserAccount;
-import com.codevictims.propertymanagement.billing.entity.Allocation;
 import com.codevictims.propertymanagement.billing.entity.Due;
-import com.codevictims.propertymanagement.billing.entity.Payment;
 import com.codevictims.propertymanagement.billing.entity.TaxPolicy;
+import com.codevictims.propertymanagement.billing.repository.AllocationRepository;
+import com.codevictims.propertymanagement.billing.repository.DueRepository;
 import com.codevictims.propertymanagement.common.dto.Input;
-import com.codevictims.propertymanagement.common.entity.AuditEvent;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-import com.codevictims.propertymanagement.common.repository.Store;
-import com.codevictims.propertymanagement.common.service.Audit;
-import com.codevictims.propertymanagement.maintenance.entity.Maintenance;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
+import com.codevictims.propertymanagement.common.service.AuditService;
 import com.codevictims.propertymanagement.property.entity.Building;
 import com.codevictims.propertymanagement.property.entity.Unit;
 import com.codevictims.propertymanagement.property.repository.UnitRepository;
+import com.codevictims.propertymanagement.property.service.PropertyService;
 import com.codevictims.propertymanagement.security.service.Access;
 import com.codevictims.propertymanagement.tenancy.entity.Lease;
 import com.codevictims.propertymanagement.tenancy.entity.Tenant;
-
-import com.codevictims.propertymanagement.property.service.PropertyService;
+import com.codevictims.propertymanagement.tenancy.repository.LeaseRepository;
+import com.codevictims.propertymanagement.tenancy.repository.TenantRepository;
 import java.math.*;
 import java.time.*;
 import java.util.*;
@@ -28,14 +27,32 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
 public class TenancyService {
-  private final Store db;
+  private final TenantRepository tenantRepository;
+  private final LeaseRepository leaseRepository;
+  private final DueRepository dueRepository;
+  private final AllocationRepository allocationRepository;
+  private final PersistenceSupport db;
   private final Access access;
-  private final Audit audit;
+  private final AuditService audit;
   private final UnitRepository units;
   private final Clock clock;
   private final PropertyService properties;
 
-  public TenancyService(Store db, Access access, Audit audit, UnitRepository units, Clock clock, PropertyService properties) {
+  public TenancyService(
+      PersistenceSupport db,
+      Access access,
+      AuditService audit,
+      UnitRepository units,
+      Clock clock,
+      PropertyService properties,
+      TenantRepository tenantRepository,
+      LeaseRepository leaseRepository,
+      DueRepository dueRepository,
+      AllocationRepository allocationRepository) {
+    this.tenantRepository = tenantRepository;
+    this.leaseRepository = leaseRepository;
+    this.dueRepository = dueRepository;
+    this.allocationRepository = allocationRepository;
     this.db = db;
     this.access = access;
     this.audit = audit;
@@ -49,18 +66,8 @@ public class TenancyService {
     var ids = properties.scope(building);
     if (ids.isEmpty()) return List.of();
     if (access.user().role.equals("TENANT"))
-      return db.list(
-          Tenant.class,
-          "select t from Tenant t where t.accountId=:id and t.buildingId in :ids order by t.id",
-          "id",
-          access.user().id,
-          "ids",
-          ids);
-    return db.list(
-        Tenant.class,
-        "select t from Tenant t where t.buildingId in :ids order by t.id",
-        "ids",
-        ids);
+      return tenantRepository.findForAccountInBuildings(access.user().id, ids);
+    return tenantRepository.findInBuildings(ids);
   }
 
   public Tenant tenant(Input in, Long id) {
@@ -90,19 +97,8 @@ public class TenancyService {
     var ids = properties.scope(building);
     if (ids.isEmpty()) return List.of();
     if (access.user().role.equals("TENANT"))
-      return db.list(
-          Lease.class,
-          "select l from Lease l,Tenant t where l.tenantId=t.id and t.accountId=:id and"
-              + " l.buildingId in :ids order by l.startDate desc",
-          "id",
-          access.user().id,
-          "ids",
-          ids);
-    return db.list(
-        Lease.class,
-        "select l from Lease l where l.buildingId in :ids order by l.startDate desc",
-        "ids",
-        ids);
+      return leaseRepository.findForTenantAccountInBuildings(access.user().id, ids);
+    return leaseRepository.findInBuildings(ids);
   }
 
   public Lease lease(Input in, Long previousId) {
@@ -116,16 +112,7 @@ public class TenancyService {
     LocalDate start = in.date("startDate");
     int months = in.integer("months", 1, 60, 12);
     LocalDate end = start.plusMonths(months).minusDays(1);
-    var existing =
-        db.list(
-            Lease.class,
-            "select l from Lease l where l.unitId=:id and l.startDate<=:end and l.endDate>=:start",
-            "id",
-            u.id,
-            "start",
-            start,
-            "end",
-            end);
+    var existing = leaseRepository.findOverlappingTerms(u.id, start, end);
     for (var l : existing) {
       LocalDate actualEnd = l.terminatedOn == null ? l.endDate : l.terminatedOn;
       if (!actualEnd.isBefore(start)) throw ApiException.conflict("LEASE_OVERLAP");
@@ -204,22 +191,9 @@ public class TenancyService {
         || when.isBefore(l.startDate)
         || when.isAfter(l.endDate)
         || when.isAfter(LocalDate.now(clock))) throw ApiException.invalid("INVALID_DATE");
-    var future =
-        db.list(
-            Due.class,
-            "select d from Due d where d.leaseId=:l and d.dueDate>:date",
-            "l",
-            id,
-            "date",
-            when);
+    var future = dueRepository.findFutureDues(id, when);
     for (var due : future) {
-      var paid =
-          db.list(
-              Allocation.class,
-              "select a from Allocation a, Payment p where a.paymentId=p.id and a.dueId=:d and"
-                  + " p.reversedOn is null",
-              "d",
-              due.id);
+      var paid = allocationRepository.findUnreversedForDue(due.id);
       if (!paid.isEmpty()) throw ApiException.conflict("REVERSE_FUTURE_PAYMENTS_FIRST");
       due.cancelled = true;
       due.cancelledOn = when;
@@ -230,5 +204,4 @@ public class TenancyService {
     audit.add(l.buildingId, "LEASE", id, "TERMINATED", in.text("reason", 255));
     return l;
   }
-
 }

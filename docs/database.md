@@ -4,23 +4,24 @@ Bayt is a same-origin modular monolith: vanilla ES modules call Spring MVC JSON 
 
 ## Repository guide
 
-| Path | Responsibility |
+Base package: `com.codevictims.propertymanagement`. Entry point: `PropertyManagementApplication`.
+
+| Feature | Responsibility |
 |---|---|
-| `src/main/java/om/bayt/domain` | JPA entities and repositories |
-| `security` | Authentication and ownership/assignment checks |
-| `service/PropertyService.java` | Buildings, units, tenant profiles, tax policies, lease lifecycle |
-| `service/FinanceService.java` | Locked allocations, cheque transitions, deposits, reversals |
-| `service/MoneyRules.java` | Pure decimal allocation rules |
-| `service/MaintenanceService.java` | Authorized work-order state transitions |
-| `service/AiAssistant.java` | Bounded Spring AI call and strict output validation |
-| `service/OperationsService.java` | Safety, utilities, vendors, leasing enquiries, guard operations |
-| `service/FileVault.java` | Protected file validation, scanning, storage, downloads |
-| `service/ReportService.java` | Reconciled reporting with supporting rows |
-| `api` | HTTP endpoints, input extraction and consistent domain errors |
-| `src/main/resources/static` | Arabic-first RTL/English LTR interface |
-| `src/main/resources/db/migration` | Versioned MySQL schema |
-| `src/test/java` | Unit and real-MySQL integration tests |
-| `tests/browser` | Playwright tests against the running Java application |
+| `account` | User accounts, authentication endpoints and building assignments |
+| `security` | Session/CSRF configuration and ownership/assignment authorization |
+| `property` | Buildings, units, safety, meters, announcements and guard operations |
+| `tenancy` | Tenant profiles, lease lifecycle, leads and viewings |
+| `billing` | Dues, payments, allocations, cheques, deposits, expenses and tax policies |
+| `maintenance` | Work orders, vendor profiles, preventive tasks and optional AI |
+| `dashboard` | Reports and reminders |
+| `common` | Base entity, exceptions, shared DTO support, audit and protected files |
+
+Each domain keeps its `entity`, `repository`, `service`, `controller`, `dto/request`, `dto/response` and `mapper` classes together where applicable. Controllers validate editable request DTOs and map responses explicitly. Password hashes and storage keys never appear in response DTOs. Services retain transaction and permission rules; repositories contain typed Spring Data queries. `PersistenceSupport` centralizes managed-entity access and the refreshed pessimistic lock required by financial concurrency tests. Operations share a service because their building-level authorization rules are common.
+
+Resources follow standard Spring Boot conventions: `application*.yml`, `db/migration`, `prompts/maintenance-assistant.txt`, and `static/{css,js,i18n,assets}`. The existing HTML entry page remains `static/index.html`. The test profile is `src/test/resources/application-test.yml`; cross-feature MySQL regressions live under the security test package, with finance and AI unit tests in their feature packages. No empty test scaffolding is required.
+
+The package refactor does not change entity table names, applied Flyway migrations, public endpoint paths or monetary rules.
 
 ## Entity relationships
 

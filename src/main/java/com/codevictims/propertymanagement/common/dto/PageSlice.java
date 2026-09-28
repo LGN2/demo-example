@@ -1,12 +1,11 @@
 package com.codevictims.propertymanagement.common.dto;
 
 import com.codevictims.propertymanagement.common.exception.ApiException;
-
 import java.util.*;
 import java.util.function.Function;
 
 public record PageSlice<T>(List<T> items, long total, int page, int size) {
-  public <R> PageSlice<R> map(Function<T,R> mapper) {
+  public <R> PageSlice<R> map(Function<T, R> mapper) {
     return new PageSlice<>(items.stream().map(mapper).toList(), total, page, size);
   }
 

@@ -1,6 +1,7 @@
 package com.codevictims.propertymanagement.maintenance.dto.response;
-import java.math.BigDecimal;
+
 import java.time.*;
+
 public record MaintenanceResponse(
     Long id,
     long version,

@@ -1,24 +1,29 @@
 package com.codevictims.propertymanagement.common.repository;
 
-import com.codevictims.propertymanagement.common.entity.Row;
+import com.codevictims.propertymanagement.common.entity.BaseEntity;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-
 import jakarta.persistence.*;
 import java.util.*;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class Store {
+public class PersistenceSupport {
   @PersistenceContext private EntityManager em;
+  private final RepositoryCatalog repositories;
 
-  public <T extends Row> T get(Class<T> type, Long id) {
-    T row = id == null ? null : em.find(type, id);
+  public PersistenceSupport(RepositoryCatalog repositories) {
+    this.repositories = repositories;
+  }
+
+  public <T extends BaseEntity> T get(Class<T> type, Long id) {
+    T row = id == null ? null : repositories.repository(type).findById(id).orElse(null);
     if (row == null) throw ApiException.missing();
     return row;
   }
 
-  public <T extends Row> T save(T row) {
-    if (row.id == null) em.persist(row);
+  @SuppressWarnings("unchecked")
+  public <T extends BaseEntity> T save(T row) {
+    if (row.id == null) repositories.repository((Class<T>) row.getClass()).save(row);
     return row;
   }
 
@@ -28,7 +33,7 @@ public class Store {
     return q.getResultList();
   }
 
-  public <T extends Row> T lock(Class<T> type, Long id) {
+  public <T extends BaseEntity> T lock(Class<T> type, Long id) {
     // Refresh under the lock, even when a pre-authorization read already loaded this row.
     T row = em.find(type, id);
     if (row == null) throw ApiException.missing();
@@ -36,7 +41,7 @@ public class Store {
     return row;
   }
 
-  public void remove(Row row) {
+  public void remove(BaseEntity row) {
     em.remove(row);
   }
 

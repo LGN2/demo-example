@@ -1,24 +1,15 @@
 package com.codevictims.propertymanagement.account.controller;
-import com.codevictims.propertymanagement.account.mapper.UserAccountMapper;
-import com.codevictims.propertymanagement.account.dto.response.UserAccountResponse;
-import com.codevictims.propertymanagement.account.mapper.BuildingAccessMapper;
-import com.codevictims.propertymanagement.account.dto.response.BuildingAccessResponse;
-import com.codevictims.propertymanagement.account.mapper.BuildingAccessMapper;
-import com.codevictims.propertymanagement.account.dto.response.BuildingAccessResponse;
-import com.codevictims.propertymanagement.account.mapper.UserAccountMapper;
-import com.codevictims.propertymanagement.account.dto.response.UserAccountResponse;
-import com.codevictims.propertymanagement.account.mapper.UserAccountMapper;
-import com.codevictims.propertymanagement.account.dto.response.UserAccountResponse;
-import com.codevictims.propertymanagement.common.mapper.RequestMapper;
+
 import com.codevictims.propertymanagement.account.dto.request.BuildingAccessRequest;
 import com.codevictims.propertymanagement.account.dto.request.ChangePasswordRequest;
 import com.codevictims.propertymanagement.account.dto.request.CreateUserRequest;
 import com.codevictims.propertymanagement.account.dto.request.OwnerTaxStatusRequest;
-
+import com.codevictims.propertymanagement.account.dto.response.BuildingAccessResponse;
+import com.codevictims.propertymanagement.account.dto.response.UserAccountResponse;
+import com.codevictims.propertymanagement.account.mapper.BuildingAccessMapper;
+import com.codevictims.propertymanagement.account.mapper.UserAccountMapper;
 import com.codevictims.propertymanagement.account.service.AccountService;
-import com.codevictims.propertymanagement.common.dto.Input;
-
-import java.util.Map;
+import com.codevictims.propertymanagement.common.mapper.RequestMapper;
 import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,7 +38,8 @@ public class AccountController {
   }
 
   @PostMapping("/access")
-  public BuildingAccessResponse grant(@jakarta.validation.Valid @RequestBody BuildingAccessRequest b) {
+  public BuildingAccessResponse grant(
+      @jakarta.validation.Valid @RequestBody BuildingAccessRequest b) {
     return BuildingAccessMapper.toResponse(service.assign(RequestMapper.toInput(b)));
   }
 

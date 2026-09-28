@@ -1,13 +1,12 @@
 package com.codevictims.propertymanagement.maintenance.entity;
 
-import com.codevictims.propertymanagement.common.entity.Row;
-
+import com.codevictims.propertymanagement.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.time.*;
 
 @Entity
 @Table(name = "preventive_task")
-public class PreventiveTask extends Row {
+public class PreventiveTask extends BaseEntity {
   @Transient public boolean seasonalPriority;
 
   @Column(nullable = false)

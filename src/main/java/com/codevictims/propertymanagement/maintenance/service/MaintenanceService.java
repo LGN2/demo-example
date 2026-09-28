@@ -1,19 +1,20 @@
 package com.codevictims.propertymanagement.maintenance.service;
 
-import com.codevictims.propertymanagement.account.entity.BuildingAccess;
+import com.codevictims.propertymanagement.account.repository.BuildingAccessRepository;
 import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-import com.codevictims.propertymanagement.common.repository.Store;
-import com.codevictims.propertymanagement.common.service.Audit;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
+import com.codevictims.propertymanagement.common.service.AuditService;
 import com.codevictims.propertymanagement.maintenance.entity.Maintenance;
-import com.codevictims.propertymanagement.maintenance.entity.VendorProfile;
+import com.codevictims.propertymanagement.maintenance.repository.MaintenanceRepository;
+import com.codevictims.propertymanagement.maintenance.repository.VendorProfileRepository;
 import com.codevictims.propertymanagement.property.entity.Building;
 import com.codevictims.propertymanagement.property.entity.Unit;
 import com.codevictims.propertymanagement.property.service.PropertyService;
 import com.codevictims.propertymanagement.security.service.Access;
-import com.codevictims.propertymanagement.tenancy.entity.Lease;
 import com.codevictims.propertymanagement.tenancy.entity.Tenant;
-
+import com.codevictims.propertymanagement.tenancy.repository.LeaseRepository;
+import com.codevictims.propertymanagement.tenancy.repository.TenantRepository;
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
@@ -22,15 +23,34 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
 public class MaintenanceService {
+  private final MaintenanceRepository maintenanceRepository;
+  private final TenantRepository tenantRepository;
+  private final LeaseRepository leaseRepository;
+  private final BuildingAccessRepository buildingAccessRepository;
+  private final VendorProfileRepository vendorProfileRepository;
   public static final String[] CATEGORIES = {"AC", "PLUMBING", "ELECTRICAL", "LIFT", "OTHER"};
-  private final Store db;
+  private final PersistenceSupport db;
   private final Access access;
-  private final Audit audit;
+  private final AuditService audit;
   private final Clock clock;
   private final PropertyService properties;
 
   public MaintenanceService(
-      Store db, Access access, Audit audit, Clock clock, PropertyService properties) {
+      PersistenceSupport db,
+      Access access,
+      AuditService audit,
+      Clock clock,
+      PropertyService properties,
+      MaintenanceRepository maintenanceRepository,
+      TenantRepository tenantRepository,
+      LeaseRepository leaseRepository,
+      BuildingAccessRepository buildingAccessRepository,
+      VendorProfileRepository vendorProfileRepository) {
+    this.maintenanceRepository = maintenanceRepository;
+    this.tenantRepository = tenantRepository;
+    this.leaseRepository = leaseRepository;
+    this.buildingAccessRepository = buildingAccessRepository;
+    this.vendorProfileRepository = vendorProfileRepository;
     this.db = db;
     this.access = access;
     this.audit = audit;
@@ -60,28 +80,10 @@ public class MaintenanceService {
     var ids = properties.scope(building);
     if (ids.isEmpty()) return List.of();
     if (access.user().role.equals("TENANT"))
-      return db.list(
-          Maintenance.class,
-          "select m from Maintenance m,Tenant t where m.tenantId=t.id and t.accountId=:u and"
-              + " m.buildingId in :ids order by m.id desc",
-          "u",
-          access.user().id,
-          "ids",
-          ids);
+      return maintenanceRepository.findForTenantAccountInBuildings(access.user().id, ids);
     if (access.user().role.equals("VENDOR"))
-      return db.list(
-          Maintenance.class,
-          "select m from Maintenance m where m.assignedTo=:u and m.buildingId in :ids order by m.id"
-              + " desc",
-          "u",
-          access.user().id,
-          "ids",
-          ids);
-    return db.list(
-        Maintenance.class,
-        "select m from Maintenance m where m.buildingId in :ids order by m.id desc",
-        "ids",
-        ids);
+      return maintenanceRepository.findAssignedInBuildings(access.user().id, ids);
+    return maintenanceRepository.findInBuildings(ids);
   }
 
   public Maintenance create(Input in) {
@@ -92,17 +94,7 @@ public class MaintenanceService {
     m.buildingId = u.buildingId;
     if (access.user().role.equals("TENANT")) {
       var candidates =
-          db.list(
-              Tenant.class,
-              "select distinct t from Tenant t,Lease l where l.tenantId=t.id and l.unitId=:unit and"
-                  + " t.accountId=:user and l.startDate<=:today and l.endDate>=:today and"
-                  + " (l.terminatedOn is null or l.terminatedOn>=:today)",
-              "unit",
-              u.id,
-              "user",
-              access.user().id,
-              "today",
-              LocalDate.now(clock));
+          tenantRepository.findCurrentTenantForUnit(u.id, access.user().id, LocalDate.now(clock));
       if (candidates.isEmpty()) throw ApiException.forbidden();
       m.tenantId = candidates.get(0).id;
     } else {
@@ -111,14 +103,8 @@ public class MaintenanceService {
       if (m.tenantId != null) {
         Tenant t = db.get(Tenant.class, m.tenantId);
         if (!t.buildingId.equals(u.buildingId)
-            || db.list(
-                    Long.class,
-                    "select l.id from Lease l where l.tenantId=:t and l.unitId=:u",
-                    "t",
-                    t.id,
-                    "u",
-                    u.id)
-                .isEmpty()) throw ApiException.invalid("INVALID_TENANT");
+            || leaseRepository.findIdsByTenantAndUnit(t.id, u.id).isEmpty())
+          throw ApiException.invalid("INVALID_TENANT");
       }
     }
     m.description = in.text("description", 2000);
@@ -155,24 +141,13 @@ public class MaintenanceService {
               && target.id.equals(db.get(Building.class, m.buildingId).ownerId);
       permitted |=
           target.role.equals("MANAGER")
-              && !db.list(
-                      BuildingAccess.class,
-                      "select a from BuildingAccess a where a.userId=:u and a.buildingId=:b and"
-                          + " a.canWrite=true",
-                      "u",
-                      assignee,
-                      "b",
-                      m.buildingId)
+              && !buildingAccessRepository
+                  .findWritableByUserAndBuilding(assignee, m.buildingId)
                   .isEmpty();
       permitted |=
           target.role.equals("VENDOR")
-              && !db.list(
-                      VendorProfile.class,
-                      "select v from VendorProfile v where v.userId=:u and v.buildingId=:b",
-                      "u",
-                      assignee,
-                      "b",
-                      m.buildingId)
+              && !vendorProfileRepository
+                  .findForMaintenanceTransition(assignee, m.buildingId)
                   .isEmpty();
       if (!permitted) throw ApiException.invalid("INVALID_ASSIGNEE");
       m.assignedTo = assignee;

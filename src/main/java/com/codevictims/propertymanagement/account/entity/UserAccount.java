@@ -1,14 +1,13 @@
 package com.codevictims.propertymanagement.account.entity;
 
-import com.codevictims.propertymanagement.common.entity.Row;
-
+import com.codevictims.propertymanagement.common.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.*;
 
 @Entity
 @Table(name = "user_account")
-public class UserAccount extends Row {
+public class UserAccount extends BaseEntity {
   @Column(nullable = false)
   public String username = "";
 

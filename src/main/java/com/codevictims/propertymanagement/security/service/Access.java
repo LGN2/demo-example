@@ -1,27 +1,50 @@
 package com.codevictims.propertymanagement.security.service;
 
-import com.codevictims.propertymanagement.account.entity.BuildingAccess;
 import com.codevictims.propertymanagement.account.entity.UserAccount;
+import com.codevictims.propertymanagement.account.repository.BuildingAccessRepository;
 import com.codevictims.propertymanagement.account.repository.UserRepository;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-import com.codevictims.propertymanagement.common.repository.Store;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
 import com.codevictims.propertymanagement.maintenance.entity.Maintenance;
-import com.codevictims.propertymanagement.maintenance.entity.VendorProfile;
+import com.codevictims.propertymanagement.maintenance.repository.MaintenanceRepository;
+import com.codevictims.propertymanagement.maintenance.repository.VendorProfileRepository;
 import com.codevictims.propertymanagement.property.entity.Building;
 import com.codevictims.propertymanagement.property.entity.Unit;
+import com.codevictims.propertymanagement.property.repository.BuildingRepository;
 import com.codevictims.propertymanagement.tenancy.entity.Lease;
 import com.codevictims.propertymanagement.tenancy.entity.Tenant;
-
+import com.codevictims.propertymanagement.tenancy.repository.LeaseRepository;
+import com.codevictims.propertymanagement.tenancy.repository.TenantRepository;
 import java.util.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class Access {
+  private final BuildingRepository buildingRepository;
+  private final BuildingAccessRepository buildingAccessRepository;
+  private final TenantRepository tenantRepository;
+  private final VendorProfileRepository vendorProfileRepository;
+  private final LeaseRepository leaseRepository;
+  private final MaintenanceRepository maintenanceRepository;
   private final UserRepository users;
-  private final Store db;
+  private final PersistenceSupport db;
 
-  public Access(UserRepository users, Store db) {
+  public Access(
+      UserRepository users,
+      PersistenceSupport db,
+      BuildingRepository buildingRepository,
+      BuildingAccessRepository buildingAccessRepository,
+      TenantRepository tenantRepository,
+      VendorProfileRepository vendorProfileRepository,
+      LeaseRepository leaseRepository,
+      MaintenanceRepository maintenanceRepository) {
+    this.buildingRepository = buildingRepository;
+    this.buildingAccessRepository = buildingAccessRepository;
+    this.tenantRepository = tenantRepository;
+    this.vendorProfileRepository = vendorProfileRepository;
+    this.leaseRepository = leaseRepository;
+    this.maintenanceRepository = maintenanceRepository;
     this.users = users;
     this.db = db;
   }
@@ -44,26 +67,10 @@ public class Access {
   public List<Long> buildings() {
     UserAccount u = user();
     return switch (u.role) {
-      case "OWNER" ->
-          db.list(Long.class, "select b.id from Building b where b.ownerId=:id", "id", u.id);
-      case "MANAGER", "GUARD" ->
-          db.list(
-              Long.class,
-              "select a.buildingId from BuildingAccess a where a.userId=:id",
-              "id",
-              u.id);
-      case "TENANT" ->
-          db.list(
-              Long.class,
-              "select distinct t.buildingId from Tenant t where t.accountId=:id",
-              "id",
-              u.id);
-      case "VENDOR" ->
-          db.list(
-              Long.class,
-              "select v.buildingId from VendorProfile v where v.userId=:id",
-              "id",
-              u.id);
+      case "OWNER" -> buildingRepository.findIdsByOwner(u.id);
+      case "MANAGER", "GUARD" -> buildingAccessRepository.findBuildingIdsForUser(u.id);
+      case "TENANT" -> tenantRepository.findBuildingIdsForAccount(u.id);
+      case "VENDOR" -> vendorProfileRepository.findBuildingIdsForUser(u.id);
       default -> List.of();
     };
   }
@@ -77,15 +84,8 @@ public class Access {
     role("OWNER", "MANAGER");
     Building b = building(id);
     if (user().role.equals("MANAGER")
-        && db.list(
-                BuildingAccess.class,
-                "select a from BuildingAccess a where a.userId=:user and a.buildingId=:building and"
-                    + " a.canWrite=true",
-                "user",
-                user().id,
-                "building",
-                id)
-            .isEmpty()) throw ApiException.forbidden();
+        && buildingAccessRepository.findWritableAssignment(user().id, id).isEmpty())
+      throw ApiException.forbidden();
     return b;
   }
 
@@ -118,24 +118,11 @@ public class Access {
   public Unit unit(Long id) {
     Unit u = db.get(Unit.class, id);
     if (user().role.equals("TENANT")) {
-      if (db.list(
-              Long.class,
-              "select l.id from Lease l, Tenant t where l.tenantId=t.id and l.unitId=:unit and"
-                  + " t.accountId=:user",
-              "unit",
-              id,
-              "user",
-              user().id)
-          .isEmpty()) throw ApiException.missing();
+      if (leaseRepository.findIdsForTenantAccountAndUnit(id, user().id).isEmpty())
+        throw ApiException.missing();
     } else if (user().role.equals("VENDOR")) {
-      if (db.list(
-              Long.class,
-              "select m.id from Maintenance m where m.unitId=:unit and m.assignedTo=:user",
-              "unit",
-              id,
-              "user",
-              user().id)
-          .isEmpty()) throw ApiException.missing();
+      if (maintenanceRepository.findAssignedIdsForUnit(id, user().id).isEmpty())
+        throw ApiException.missing();
     } else building(u.buildingId);
     return u;
   }

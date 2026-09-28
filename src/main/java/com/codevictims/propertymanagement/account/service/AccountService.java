@@ -2,12 +2,13 @@ package com.codevictims.propertymanagement.account.service;
 
 import com.codevictims.propertymanagement.account.entity.BuildingAccess;
 import com.codevictims.propertymanagement.account.entity.UserAccount;
+import com.codevictims.propertymanagement.account.repository.BuildingAccessRepository;
+import com.codevictims.propertymanagement.account.repository.UserRepository;
 import com.codevictims.propertymanagement.common.dto.Input;
 import com.codevictims.propertymanagement.common.exception.ApiException;
-import com.codevictims.propertymanagement.common.repository.Store;
-import com.codevictims.propertymanagement.common.service.Audit;
+import com.codevictims.propertymanagement.common.repository.PersistenceSupport;
+import com.codevictims.propertymanagement.common.service.AuditService;
 import com.codevictims.propertymanagement.security.service.Access;
-
 import java.util.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,12 +17,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class AccountService {
-  private final Store db;
+  private final UserRepository userRepository;
+  private final BuildingAccessRepository buildingAccessRepository;
+  private final PersistenceSupport db;
   private final Access access;
   private final PasswordEncoder passwords;
-  private final Audit audit;
+  private final AuditService audit;
 
-  public AccountService(Store db, Access access, PasswordEncoder passwords, Audit audit) {
+  public AccountService(
+      PersistenceSupport db,
+      Access access,
+      PasswordEncoder passwords,
+      AuditService audit,
+      UserRepository userRepository,
+      BuildingAccessRepository buildingAccessRepository) {
+    this.userRepository = userRepository;
+    this.buildingAccessRepository = buildingAccessRepository;
     this.db = db;
     this.access = access;
     this.passwords = passwords;
@@ -30,15 +41,8 @@ public class AccountService {
 
   public List<UserAccount> list() {
     access.role("OWNER", "PLATFORM_ADMIN");
-    if (access.user().role.equals("PLATFORM_ADMIN"))
-      return db.list(
-          UserAccount.class,
-          "select u from UserAccount u where u.role in ('OWNER','PLATFORM_ADMIN') order by u.id");
-    return db.list(
-        UserAccount.class,
-        "select u from UserAccount u where u.ownerId=:id order by u.id",
-        "id",
-        access.user().id);
+    if (access.user().role.equals("PLATFORM_ADMIN")) return userRepository.findPlatformAccounts();
+    return userRepository.findPortfolioAccounts(access.user().id);
   }
 
   public UserAccount create(Input in) {
@@ -67,14 +71,7 @@ public class AccountService {
     Long building = in.id("buildingId");
     access.owner(building);
     UserAccount u = access.portfolioUser(in.id("userId"), building, "MANAGER", "GUARD");
-    var list =
-        db.list(
-            BuildingAccess.class,
-            "select a from BuildingAccess a where a.buildingId=:b and a.userId=:u",
-            "b",
-            building,
-            "u",
-            u.id);
+    var list = buildingAccessRepository.findByBuildingAndUser(building, u.id);
     BuildingAccess a = list.isEmpty() ? new BuildingAccess() : list.get(0);
     a.buildingId = building;
     a.userId = u.id;
@@ -86,11 +83,7 @@ public class AccountService {
 
   public List<BuildingAccess> grants(Long building) {
     access.owner(building);
-    return db.list(
-        BuildingAccess.class,
-        "select a from BuildingAccess a where a.buildingId=:b",
-        "b",
-        building);
+    return buildingAccessRepository.findByBuilding(building);
   }
 
   public void revoke(Long id) {

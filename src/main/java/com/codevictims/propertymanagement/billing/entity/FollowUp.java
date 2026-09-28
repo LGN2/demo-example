@@ -1,13 +1,12 @@
 package com.codevictims.propertymanagement.billing.entity;
 
-import com.codevictims.propertymanagement.common.entity.Row;
-
+import com.codevictims.propertymanagement.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import java.time.*;
 
 @Entity
 @Table(name = "follow_up")
-public class FollowUp extends Row {
+public class FollowUp extends BaseEntity {
   @Column(nullable = false)
   public Long leaseId;
 

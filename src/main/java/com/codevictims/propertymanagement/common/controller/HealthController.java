@@ -1,7 +1,5 @@
 package com.codevictims.propertymanagement.common.controller;
 
-
-
 import java.util.Map;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -14,7 +12,9 @@ public class HealthController {
   private volatile boolean ready;
 
   @EventListener(ApplicationReadyEvent.class)
-  public void ready() { ready = true; }
+  public void ready() {
+    ready = true;
+  }
 
   @GetMapping("/api/health")
   public ResponseEntity<?> health() {

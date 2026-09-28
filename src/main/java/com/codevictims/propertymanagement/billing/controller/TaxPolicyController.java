@@ -1,16 +1,11 @@
 package com.codevictims.propertymanagement.billing.controller;
-import com.codevictims.propertymanagement.billing.mapper.TaxPolicyMapper;
-import com.codevictims.propertymanagement.billing.dto.response.TaxPolicyResponse;
-import com.codevictims.propertymanagement.billing.mapper.TaxPolicyMapper;
-import com.codevictims.propertymanagement.billing.dto.response.TaxPolicyResponse;
-import com.codevictims.propertymanagement.common.mapper.RequestMapper;
+
 import com.codevictims.propertymanagement.billing.dto.request.TaxPolicyRequest;
-
-import com.codevictims.propertymanagement.common.dto.Input;
-import com.codevictims.propertymanagement.common.dto.PageSlice;
+import com.codevictims.propertymanagement.billing.dto.response.TaxPolicyResponse;
+import com.codevictims.propertymanagement.billing.mapper.TaxPolicyMapper;
 import com.codevictims.propertymanagement.billing.service.TaxPolicyService;
+import com.codevictims.propertymanagement.common.mapper.RequestMapper;
 import com.codevictims.propertymanagement.security.service.Access;
-
 import java.util.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,5 +29,4 @@ public class TaxPolicyController {
   public TaxPolicyResponse tax(@jakarta.validation.Valid @RequestBody TaxPolicyRequest b) {
     return TaxPolicyMapper.toResponse(s.tax(RequestMapper.toInput(b)));
   }
-
 }
