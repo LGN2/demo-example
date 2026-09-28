@@ -1,4 +1,6 @@
 package com.codevictims.propertymanagement.dashboard.service;
+import com.codevictims.propertymanagement.tenancy.service.TenancyService;
+
 
 import com.codevictims.propertymanagement.billing.service.FinanceService;
 import com.codevictims.propertymanagement.common.repository.Store;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 public class ReminderService {
+  private final TenancyService tenancyService;
   public record Reminder(
       String type, Long id, Long buildingId, LocalDate dueDate, String title, String link) {}
 
@@ -38,7 +41,8 @@ public class ReminderService {
       OperationsService operations,
       Access access,
       Store db,
-      Clock clock) {
+      Clock clock, TenancyService tenancyService) {
+    this.tenancyService = tenancyService;
     this.properties = properties;
     this.finance = finance;
     this.vault = vault;
@@ -52,7 +56,7 @@ public class ReminderService {
     access.role("OWNER", "MANAGER", "TENANT");
     LocalDate today = LocalDate.now(clock);
     List<Reminder> rows = new ArrayList<>();
-    for (Lease l : properties.leases(building)) {
+    for (Lease l : tenancyService.leases(building)) {
       int days = db.get(Building.class, l.buildingId).reminderDays;
       if (l.terminatedOn == null && !l.endDate.isAfter(today.plusDays(days)))
         rows.add(

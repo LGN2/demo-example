@@ -1,4 +1,6 @@
 package com.codevictims.propertymanagement.dashboard.service;
+import com.codevictims.propertymanagement.tenancy.service.TenancyService;
+
 
 import com.codevictims.propertymanagement.billing.entity.Allocation;
 import com.codevictims.propertymanagement.billing.entity.Cheque;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 public class ReportService {
+  private final TenancyService tenancyService;
   private final Store db;
   private final Access access;
   private final PropertyService properties;
@@ -34,7 +37,8 @@ public class ReportService {
       Access access,
       PropertyService properties,
       FinanceService finance,
-      MaintenanceService maintenance) {
+      MaintenanceService maintenance, TenancyService tenancyService) {
+    this.tenancyService = tenancyService;
     this.db = db;
     this.access = access;
     this.properties = properties;
@@ -60,7 +64,7 @@ public class ReportService {
     if (unitId != null) access.unit(unitId);
     var unitIds = units.stream().map(u -> u.id).toList();
     var leases =
-        properties.leases(buildingId).stream().filter(l -> unitIds.contains(l.unitId)).toList();
+        tenancyService.leases(buildingId).stream().filter(l -> unitIds.contains(l.unitId)).toList();
     List<FinanceService.DueView> dues = new ArrayList<>();
     List<Payment> payments = new ArrayList<>();
     List<Cheque> cheques = new ArrayList<>();

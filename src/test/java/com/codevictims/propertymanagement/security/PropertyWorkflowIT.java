@@ -1,4 +1,8 @@
 package com.codevictims.propertymanagement.security;
+import com.codevictims.propertymanagement.tenancy.service.TenancyService;
+import com.codevictims.propertymanagement.billing.service.TaxPolicyService;
+import com.codevictims.propertymanagement.common.service.AuditHistoryService;
+
 
 import com.codevictims.propertymanagement.account.entity.UserAccount;
 import com.codevictims.propertymanagement.account.repository.UserRepository;
@@ -58,6 +62,10 @@ import org.springframework.transaction.support.TransactionTemplate;
     })
 @AutoConfigureMockMvc
 class PropertyWorkflowIT {
+  @Autowired private TenancyService tenancyService;
+  @Autowired private TaxPolicyService taxPolicyService;
+  @Autowired private AuditHistoryService auditHistoryService;
+
   @Autowired Store db;
   @Autowired UserRepository users;
   @Autowired PropertyService properties;
@@ -130,7 +138,7 @@ class PropertyWorkflowIT {
                 "300.000"),
             null);
     tenant =
-        properties.tenant(
+        tenancyService.tenant(
             in(
                 "buildingId",
                 building.id,
@@ -144,7 +152,7 @@ class PropertyWorkflowIT {
                 "00000000"),
             null);
     policy =
-        properties.tax(
+        taxPolicyService.tax(
             in(
                 "buildingId",
                 building.id,
@@ -156,7 +164,7 @@ class PropertyWorkflowIT {
                 "0",
                 "effectiveFrom",
                 "2020-01-01"));
-    lease = properties.lease(leaseInput(unit.id, tenant.id, today), null);
+    lease = tenancyService.lease(leaseInput(unit.id, tenant.id, today), null);
   }
 
   @AfterEach
@@ -342,7 +350,7 @@ class PropertyWorkflowIT {
     finance.reverse(p.id, in("reason", "Retry"));
     assertEquals(0, new BigDecimal("300.000").compareTo(outstanding()));
     assertTrue(
-        properties.history("LEASE", lease.id).stream()
+        auditHistoryService.history("LEASE", lease.id).stream()
             .anyMatch(e -> e.action.equals("PAYMENT_REVERSED")));
   }
 
@@ -352,10 +360,10 @@ class PropertyWorkflowIT {
         "LEASE_OVERLAP",
         assertThrows(
                 ApiException.class,
-                () -> properties.lease(leaseInput(unit.id, tenant.id, today), null))
+                () -> tenancyService.lease(leaseInput(unit.id, tenant.id, today), null))
             .code);
     Lease renewed =
-        properties.lease(leaseInput(unit.id, tenant.id, lease.endDate.plusDays(1)), lease.id);
+        tenancyService.lease(leaseInput(unit.id, tenant.id, lease.endDate.plusDays(1)), lease.id);
     assertEquals(lease.id, renewed.previousLeaseId);
     assertEquals(1, finance.dues(renewed.id, today).size());
   }
@@ -392,7 +400,7 @@ class PropertyWorkflowIT {
   void readOnlyManagerCanReadButNotWrite() {
     accounts.assign(in("buildingId", building.id, "userId", manager.id, "canWrite", false));
     login(manager);
-    assertEquals(1, properties.leases(building.id).size());
+    assertEquals(1, tenancyService.leases(building.id).size());
     assertThrows(ApiException.class, () -> finance.payment(lease.id, pay("100.000", "denied")));
   }
 
@@ -430,7 +438,7 @@ class PropertyWorkflowIT {
     maintenance.transition(m.id, in("status", "RESOLVED"));
     maintenance.transition(m.id, in("status", "CLOSED"));
     assertEquals("CLOSED", maintenance.list(building.id).get(0).status);
-    assertEquals(6, properties.history("MAINTENANCE", m.id).size());
+    assertEquals(6, auditHistoryService.history("MAINTENANCE", m.id).size());
   }
 
   @Test
@@ -505,7 +513,7 @@ class PropertyWorkflowIT {
   void taxIsExplicitAndHistoricalDuesDoNotChange() {
     accounts.tax(in("taxRegistered", true));
     TaxPolicy tax =
-        properties.tax(
+        taxPolicyService.tax(
             in(
                 "buildingId",
                 building.id,
@@ -518,7 +526,7 @@ class PropertyWorkflowIT {
                 "effectiveFrom",
                 "2020-01-01"));
     var next =
-        properties.lease(
+        tenancyService.lease(
             in(
                 "unitId",
                 unit.id,
@@ -654,7 +662,7 @@ class PropertyWorkflowIT {
           login(owner);
           try {
             start.await();
-            properties.lease(leaseInput(unit.id, tenant.id, lease.endDate.plusDays(1)), lease.id);
+            tenancyService.lease(leaseInput(unit.id, tenant.id, lease.endDate.plusDays(1)), lease.id);
             return true;
           } catch (ApiException e) {
             assertEquals("LEASE_OVERLAP", e.code);
@@ -676,7 +684,7 @@ class PropertyWorkflowIT {
   void tenantHistoryDoesNotExposeInternalFollowUpNotes() {
     finance.followUp(lease.id, in("note", "Internal collection discussion"));
     login(tenantUser);
-    assertTrue(properties.history("LEASE", lease.id).stream().noneMatch(e -> e.action.equals("FOLLOW_UP")));
+    assertTrue(auditHistoryService.history("LEASE", lease.id).stream().noneMatch(e -> e.action.equals("FOLLOW_UP")));
     assertThrows(ApiException.class, () -> finance.followUps(lease.id));
   }
 }

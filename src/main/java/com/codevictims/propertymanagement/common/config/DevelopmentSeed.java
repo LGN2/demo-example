@@ -1,4 +1,7 @@
 package com.codevictims.propertymanagement.common.config;
+import com.codevictims.propertymanagement.tenancy.service.TenancyService;
+import com.codevictims.propertymanagement.billing.service.TaxPolicyService;
+
 
 import com.codevictims.propertymanagement.account.entity.UserAccount;
 import com.codevictims.propertymanagement.account.repository.UserRepository;
@@ -30,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @Profile("dev")
 public class DevelopmentSeed implements ApplicationRunner {
+  private final TenancyService tenancyService;
+  private final TaxPolicyService taxPolicyService;
   private final UserRepository users;
   private final PasswordEncoder passwords;
   private final Store db;
@@ -49,7 +54,10 @@ public class DevelopmentSeed implements ApplicationRunner {
       FinanceService finance,
       MaintenanceService maintenance,
       Clock clock,
-      @Value("${app.demo-password}") String password) {
+      @Value("${app.demo-password}") String password, TenancyService tenancyService, TaxPolicyService taxPolicyService) {
+
+    this.tenancyService = tenancyService;
+    this.taxPolicyService = taxPolicyService;
     this.users = users;
     this.passwords = passwords;
     this.db = db;
@@ -154,7 +162,7 @@ public class DevelopmentSeed implements ApplicationRunner {
       v.hourlyRate = new java.math.BigDecimal("8.000");
       db.save(v);
       TaxPolicy tax =
-          properties.tax(
+          taxPolicyService.tax(
               input(
                   "buildingId",
                   b.id,
@@ -191,7 +199,7 @@ public class DevelopmentSeed implements ApplicationRunner {
         if (first == null) first = u;
       }
       Tenant t =
-          properties.tenant(
+          tenancyService.tenant(
               input(
                   "buildingId",
                   b.id,
@@ -210,7 +218,7 @@ public class DevelopmentSeed implements ApplicationRunner {
               null);
       LocalDate start = LocalDate.now(clock).withDayOfMonth(1);
       Lease l =
-          properties.lease(
+          tenancyService.lease(
               input(
                   "unitId",
                   first.id,
