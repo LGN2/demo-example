@@ -1,3 +1,22 @@
+# Refactor verification — 28 September 2026
+
+[CI run 36410118164](https://github.com/LGN2/demo-example/actions/runs/36410118164) passed for application commit `f1b5f5f65906fe7d971302941888ccf15cbfee10`.
+
+| Environment | Executed result |
+|---|---|
+| Java 17 + MySQL 8.4.6 | 9 unit tests and 19 integration tests passed; zero failures, errors or skips |
+| Java 21 + MySQL 8.4.6 | 9 unit tests and 19 integration tests passed; zero failures, errors or skips |
+| Packaged application + fresh development database | Startup and readiness passed |
+| Chromium acceptance | 21 owner screens, real payment, tenant request, role isolation, Arabic/English desktop and 360px layouts passed |
+
+New HTTP regressions verify invalid DTO input returns 400, injected ownership cannot change the authenticated owner, password hashes are excluded, and multipart date fields bind correctly while storage keys remain private. Existing financial concurrency, lease overlap, tax history, deposit separation, authorization and protected-file regressions still pass.
+
+The four dashboard screenshots in `browser-evidence` were visually inspected. Browser checks report no JavaScript errors or page overflow. Documentation links and Postman JSON parse checks passed locally. Postman execution, complete accessibility auditing and production load/security testing are not claimed.
+
+Artifacts: `test-results-java-17`, `test-results-java-21`, `browser-evidence`. The subsequent documentation-only commit records these results without changing executable code.
+
+---
+
 # Test results before the structure refactor
 
 Updated 28 September 2026. Branch: `feat/oman-property-management`. Review: [pull request #1](https://github.com/LGN2/demo-example/pull/1). The branch is published; no merge or production deployment has been performed.
