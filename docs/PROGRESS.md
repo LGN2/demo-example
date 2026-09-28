@@ -1,27 +1,37 @@
-# Implementation progress
+# Implementation progress and delivery evidence
 
-Updated 27 September 2026. Work branch: `feat/oman-property-management`.
+Updated 28 September 2026. Branch: `feat/oman-property-management`. Review: [pull request #1](https://github.com/LGN2/demo-example/pull/1). The branch is published; no merge or production deployment has been performed.
 
 ## Delivered
 
-Connected Java 17/Spring Boot/MySQL application, bilingual vanilla-JS frontend, six scoped roles, tenancy/finance/maintenance, Spring AI adapter with manual fallback, standalone operations, file vault, reporting, migration/Compose setup and training documentation. See REQUIREMENTS.md for per-feature status and limitations.
+Connected Java 17/Spring Boot/MySQL application, Arabic-first RTL and English vanilla-JS frontend, six scoped roles, tenancy/finance/maintenance, Spring AI adapter with manual fallback, standalone operations, protected file vault, reporting, migrations, Compose and training documentation. See [REQUIREMENTS.md](REQUIREMENTS.md) for per-feature scope and actual status.
 
-## Executed evidence
+## Executed verification
 
-[GitHub Actions run 36321308883](https://github.com/LGN2/demo-example/actions/runs/36321308883), commit `bc3557f0a5ad376b7c4080ab938f5607d861e6ab`:
+[Final application CI run 36343342902](https://github.com/LGN2/demo-example/actions/runs/36343342902) succeeded for application commit `bccf9521d6f4a27c9bc71c8ea8ba9f162c998859`:
 
-- `./mvnw -B verify`: 9 unit tests and 16 MySQL integration tests passed.
-- `npm test --prefix tests/browser`: passed 21 owner screens, actual payment, tenant maintenance creation, role restrictions, English/Arabic desktop and 360px layouts.
-- Local Maven unit tests also passed (9); full database/browser evidence comes from CI.
+- `./mvnw -B verify`: **9 unit tests + 17 real MySQL integration tests**, zero failures, errors or skipped tests.
+- Financial evidence includes OMR 300 → 200 after payment, unchanged pending/bounced cheques, exact-once clearance, concurrent clearance/manual payments, separate deposits, retained reversals and reconciled dashboard balances.
+- Authorization evidence includes cross-owner/tenant/admin restrictions, unassigned and read-only managers, vendor/guard limits, protected documents and staff-only collection notes.
+- `npm test --prefix tests/browser`: **passed**, covering 21 owner screens, an actual OMR 10.000 payment, tenant urgent maintenance submission, assigned/unassigned manager access, other restricted role journeys, Arabic/English desktop and 360px overflow checks. No browser JavaScript errors.
+- Packaged application started against a fresh development MySQL database and passed readiness before browser tests.
+- Retained workflow artifacts: `test-results` and `browser-evidence`. The latter includes four dashboard screenshots and the application startup log. Desktop screenshots and refreshed Arabic/English mobile screenshots were visually inspected. Screenshot capture fast-forwards transitions and waits for transient payment notices.
+- Local checks: JavaScript syntax, `git diff --check`, Postman JSON parsing, unique ClickUp task identifiers and local Markdown links. Earlier local Maven unit execution also passed 9 tests.
 
-## Current verification
+Subsequent delivery commits change documentation/API examples only; the executable application is the tested commit above. Postman import/execution itself has not been performed. Visual dashboard inspection does not represent a full accessibility or every-screen manual audit.
 
-Latest readiness and internal-note privacy fixes add a seventeenth database test. Final CI rerun pending. Browser artifact path corrected so screenshots are retained. Human visual/accessibility review and manual checklist are not claimed complete. Postman requests are documented examples; Postman execution is not claimed.
+## Documentation
 
-## Remaining dependencies
+README includes PowerShell and Unix Docker/non-Docker setup and development accounts. The docs directory includes API reference/Postman collection, architecture/ER diagrams, financial definitions, security/backup guidance, manual acceptance checklist, eight-minute demo, ClickUp-compatible import and feature completion matrix.
 
-All provider/hardware integrations are blocked as detailed in INTEGRATIONS.md. Live AI requires a server key. Production scanner, HTTPS, backup restore rehearsal and deployment load/accessibility review require the target environment.
+## Remaining dependencies and limits
 
-## Next steps
+- Gateway, automated WhatsApp, portals and hardware integrations remain visibly disabled: see [INTEGRATIONS.md](INTEGRATIONS.md). Live AI requires a server key and provider verification.
+- Production requires HTTPS, unique accounts/secrets, a provisioned upload scanner, coordinated backup/restore rehearsal and confirmed contract/tax rules. The demo image does not ship a scanner.
+- List search/pagination runs after authorized query loading. Relationship selectors now load every authorized page; large portfolios need database pagination/autocomplete and load testing.
+- Fixed monthly, one-unit/one-tenant leases only. Printable contracts are unsigned drafts. No proration, general ledger, automated legal registration or device control is claimed.
+- Full accessibility, penetration/load tests and the remaining human acceptance checklist are deployment review work.
 
-Publish latest commits, run final CI (9 unit + 17 integration + browser), inspect retained screenshots, record evidence, and open a review PR. Do not merge or claim production deployment.
+## Next steps for the team
+
+Review pull request #1, run the development application using README, and complete [ACCEPTANCE.md](ACCEPTANCE.md) for the intended operating environment. Provider-specific adapters can proceed when their documented dependencies are available. No core-code completion step is delegated to the user.

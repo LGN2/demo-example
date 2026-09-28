@@ -32,6 +32,10 @@
     {
       "key": "paymentKey",
       "value": "postman-training-001"
+    },
+    {
+      "key": "historyType",
+      "value": "LEASE"
     }
   ],
   "event": [
@@ -1572,11 +1576,11 @@
       }
     },
     {
-      "name": "GET /history/{{type}}/{{recordId}}",
+      "name": "GET /history/{{historyType}}/{{recordId}}",
       "request": {
         "method": "GET",
         "header": [],
-        "url": "{{baseUrl}}/api/history/{{type}}/{{recordId}}",
+        "url": "{{baseUrl}}/api/history/{{historyType}}/{{recordId}}",
         "description": "See API.md for required fields, roles and transitions. Select the correct record ID and payload before sending. Requests are examples, not a collection-runner scenario."
       }
     },
