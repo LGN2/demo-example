@@ -2,7 +2,7 @@
 
 Arabic-first building and property management for Oman. A connected Java Spring Boot / MySQL application with a vanilla JavaScript frontend, session security, real rent ledgers and role-restricted workflows.
 
-**Work branch:** `feat/oman-property-management`. This is an initial reviewable implementation; see [requirements and verification status](docs/PROGRESS.md) and [the feature matrix](docs/REQUIREMENTS.md). Provider integrations are explicitly disabled until configured and implemented against a selected provider.
+**Work branch:** `master`. This is an initial reviewable implementation; see [requirements and verification status](docs/PROGRESS.md) and [the feature matrix](docs/REQUIREMENTS.md). Provider integrations are explicitly disabled until configured and implemented against a selected provider.
 
 ## Start the development application
 
@@ -11,7 +11,7 @@ Install Docker Desktop with Compose. In PowerShell:
 ```powershell
 git clone https://github.com/LGN2/demo-example.git
 cd demo-example
-git checkout feat/oman-property-management
+git checkout master
 Copy-Item .env.example .env
 # Edit .env and choose your own local database passwords.
 docker compose up --build
@@ -22,7 +22,7 @@ Linux/macOS:
 ```sh
 git clone https://github.com/LGN2/demo-example.git
 cd demo-example
-git checkout feat/oman-property-management
+git checkout master
 cp .env.example .env
 # Edit .env and choose your own local database passwords.
 docker compose up --build
@@ -63,8 +63,8 @@ PowerShell:
 
 ```powershell
 $env:DB_URL = 'jdbc:mysql://localhost:3306/bayt?connectionTimeZone=UTC'
-$env:DB_USER = 'bayt'
-$env:DB_PASSWORD = 'your-local-database-password'
+$env:DB_USERNAME = 'bayt'
+$env:DB_PASS = 'your-local-database-password'
 $env:SPRING_PROFILES_ACTIVE = 'dev'
 $env:DEMO_PASSWORD = 'BaytDemo!2026'
 .\mvnw.cmd spring-boot:run
@@ -74,8 +74,8 @@ Linux/macOS:
 
 ```sh
 export DB_URL='jdbc:mysql://localhost:3306/bayt?connectionTimeZone=UTC'
-export DB_USER='bayt'
-export DB_PASSWORD='your-local-database-password'
+export DB_USERNAME='bayt'
+export DB_PASS='your-local-database-password'
 export SPRING_PROFILES_ACTIVE=dev
 export DEMO_PASSWORD='BaytDemo!2026'
 sh ./mvnw spring-boot:run
@@ -93,7 +93,7 @@ sh ./mvnw test
 
 PowerShell equivalent: `.\mvnw.cmd test`.
 
-For integration tests, create a **separate empty database**, grant the test user access, set `DB_URL`, `DB_USER`, `DB_PASSWORD` to that database, then run:
+For integration tests, create a **separate empty database**, grant the test user access, set `DB_URL`, `DB_USERNAME`, `DB_PASS` to that database, then run:
 
 ```sh
 sh ./mvnw verify
@@ -148,8 +148,8 @@ Run `com.codevictims.propertymanagement.PropertyManagementApplication` with the 
 To update an existing checkout:
 
 ```sh
-git switch feat/oman-property-management
-git pull --ff-only origin feat/oman-property-management
+git switch master
+git pull --ff-only origin master
 ```
 
 The project follows feature packages under `com/codevictims/propertymanagement`: `account`, `security`, `property`, `tenancy`, `billing`, `maintenance`, `dashboard`, and `common`. See [the structure and database guide](docs/database.md).
