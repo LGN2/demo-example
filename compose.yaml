@@ -19,13 +19,13 @@ services:
       retries: 30
   app:
     build: .
-    ports: ["127.0.0.1:8080:8080"]
+    ports: ["8080:8080"]
     depends_on:
       mysql: { condition: service_healthy }
     environment:
       DB_URL: jdbc:mysql://mysql:3306/bayt?connectionTimeZone=UTC
-      DB_USER: ${DB_USER:-bayt}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_USERNAME: ${DB_USER:-bayt}
+      DB_PASS: ${DB_PASSWORD}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       DEMO_PASSWORD: ${DEMO_PASSWORD:-BaytDemo!2026}
