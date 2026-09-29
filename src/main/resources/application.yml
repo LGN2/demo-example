@@ -2,9 +2,9 @@ spring:
   application:
     name: bayt
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/bayt?connectionTimeZone=UTC}
-    username: ${DB_USER:bayt}
-    password: ${DB_PASSWORD:}
+    url: ${DB_URL:jdbc:mysql://localhost:3306/bayt?connectionTimeZone=UTCcreateDatabaseIfNotExist=true}
+    username: ${DB_USERNAME}
+    password: ${DB_PASS}
   jpa:
     open-in-view: false
     hibernate:
