@@ -1,7 +1,7 @@
 name: Verify application
 on:
   push:
-    branches: [main, "feat/**"]
+    branches: [main, master, "feat/**"]
   pull_request:
 permissions:
   contents: read
@@ -25,8 +25,8 @@ jobs:
           --health-interval=5s --health-timeout=5s --health-retries=30
     env:
       DB_URL: jdbc:mysql://localhost:3306/bayt_test?connectionTimeZone=UTC
-      DB_USER: bayt
-      DB_PASSWORD: test-only-password
+      DB_USERNAME: bayt
+      DB_PASS: test-only-password
       COOKIE_SECURE: false
     steps:
       - uses: actions/checkout@v4
@@ -60,8 +60,8 @@ jobs:
           --health-interval=5s --health-timeout=5s --health-retries=30
     env:
       DB_URL: jdbc:mysql://localhost:3306/bayt_demo?connectionTimeZone=UTC
-      DB_USER: bayt
-      DB_PASSWORD: test-only-password
+      DB_USERNAME: bayt
+      DB_PASS: test-only-password
       SPRING_PROFILES_ACTIVE: dev
       COOKIE_SECURE: false
     steps:
